@@ -1,0 +1,5 @@
+venv/
+Dockerfiletest
+rt
+test.py
+Testing.csv
