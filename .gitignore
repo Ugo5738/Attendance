@@ -1,7 +1,3 @@
+.gitignore
 venv/
-.venv
 .idea
-Dockerfiletest
-rt
-test.py
-Testing.csv
