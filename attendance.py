@@ -53,8 +53,9 @@ video_capture = cv2.VideoCapture(0)
 def show_vid():
     # url = "http://172.20.10.4:8080/shot.jpg"
     # url = "http://213.255.147.195:8080/shot.jpg"
-    url = "http://192.168.8.103:8080/shot.jpg"
-
+    # url = "http://192.168.8.103:8080/shot.jpg"
+    os.environ.get('URL', http://172.20.10.7:1024/shot.jpg)
+    
     while True:
         # capture frame by frame
         # success, img = video_capture.read()
