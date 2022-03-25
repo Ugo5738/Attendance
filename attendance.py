@@ -7,7 +7,7 @@ from datetime import datetime
 import csv
 
 
-path = "Images"
+path = "Images_upload/"
 images = []
 classNames = []
 imageList = os.listdir(path)
@@ -22,26 +22,48 @@ for image_class in imageList:
 
 def get_encodings(image_list):
     encode_list = []
-    for image in image_list:
+    for ind, image in enumerate(image_list):
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         encode = face_recognition.face_encodings(image)[0]
         encode_list.append(encode)
-        print(len(encode_list))
     return encode_list
 
 
 def mark_attendance(person_name):
-    with open("Attendance.csv", "r+") as f:
-        attendance_list = f.readlines()
+    with open('Attendance.csv', "r+") as file:
+        content = file.readlines()
+        header = content[:1]
+        rows = content[1:]
         name_list = []
-        for line in attendance_list:
-            entry = line.split(', ')
-            name_list.append(entry[0])
+        for entry in rows:
+            entry = entry.split(", ")
+            entry[-1] = entry[-1].split()[0]
+            full_name = f'{entry[0]} {entry[1]} {entry[2]}'
+            name_list.append(full_name)
+            print("this is the name list", name_list)
         if person_name not in name_list:
             now = datetime.now()
             time = now.strftime('%H:%M:%S')
             date = now.strftime('%d-%B-%Y')
-            f.writelines(f"\n{person_name}, {time}, {date}")
+            day = now.strftime('%A')
+            new_member = person_name.split()
+            first_name = new_member[0]
+            middle_name = new_member[1]
+            last_name = new_member[2]
+            file.writelines(f"\n{first_name}, {middle_name}, {last_name}, {time}, {date}, {day}")
+
+
+def attendance_db():
+    with open('Attendance.csv') as file:
+        content = file.readlines()
+        header = content[:1]
+        rows = content[1:]
+        row_list = []
+        for row in rows:
+            row = row.split(", ")
+            row[-1] = row[-1].split()[0]
+            row_list.append(row)
+        return row_list
 
 
 encode_list_for_known_faces = get_encodings(images)
@@ -86,8 +108,7 @@ def show_vid():
         # for encodeFace, faceLoc in zip(encoded_faces, face_locations): # you can use an enumerate here
         for ind, (encodeFace, faceLoc) in enumerate(zip(encoded_faces, face_locations)):
             matches = face_recognition.compare_faces(encode_list_for_known_faces, encodeFace)
-            # name = "Unknown"
-            name = f"Unknown {ind}"
+            name = "New member recognized"
             face_dist = face_recognition.face_distance(encode_list_for_known_faces, encodeFace)
             # print(face_dist)
             match_index = np.argmin(face_dist)
@@ -96,7 +117,6 @@ def show_vid():
             # display bounding box and name on image
             if matches[match_index]:
                 name = classNames[match_index].upper()
-                # print(name)
             y1, x2, y2, x1 = faceLoc
             y1, x2, y2, x1 = y1*4, x2*4, y2*4, x1*4
             cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)

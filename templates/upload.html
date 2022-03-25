@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>You are almost Done {{ first_name }}. Please upload an image of your face.</h1>
+    <div class="center">
+        <form method = "POST" action = "/uploader" enctype="multipart/form-data">
+            <input type="file" name="file">
+            <input type="submit">
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="shadow p-3 mb-5 bg-body rounded">
+    <h3>Welcome! Please Register here</h3>
+    <br/>
+    <form method="POST" enctype="multipart/form-data">
+        {{ member_form.hidden_tag() }}
+
+
+        {{ member_form.first_name.label(class="form-label") }}
+        {{ member_form.first_name(class="form-control") }}
+
+        {{ member_form.middle_name.label(class="form-label") }}
+        {{ member_form.middle_name(class="form-control") }}
+
+        {{ member_form.last_name.label(class="form-label") }}
+        {{ member_form.last_name(class="form-control") }}
+
+        {{ member_form.address.label(class="form-label") }}
+        {{ member_form.address(class="form-control") }}
+
+        {{ member_form.email.label(class="form-label") }}
+        {{ member_form.email(class="form-control") }}
+        <br/>
+        <input type="file" name="file">
+        <br/>
+        <br/>
+        {{ member_form.submit(class="btn btn-secondary") }}
+    </form>
+</div>
+
+{% endblock %}
