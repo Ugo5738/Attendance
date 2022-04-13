@@ -9,6 +9,9 @@
         {{ member_form.hidden_tag() }}
 
 
+        {{ member_form.title.label(class="form-label") }}
+        {{ member_form.title(class="form-control") }}
+
         {{ member_form.first_name.label(class="form-label") }}
         {{ member_form.first_name(class="form-control") }}
 
@@ -23,8 +26,26 @@
 
         {{ member_form.email.label(class="form-label") }}
         {{ member_form.email(class="form-control") }}
+
+        {{ member_form.gender.label(class="form-label") }}
+        {{ member_form.gender(class="form-control") }}
+
+        {{ member_form.birth_date.label(class="form-label") }}
+        {{ member_form.birth_date(class="form-control") }}
+
+        {{ member_form.phone.label(class="form-label") }}
+        {{ member_form.phone(class="form-control") }}
+
+        {{ member_form.country.label(class="form-label") }}
+        {{ member_form.country(class="form-control") }}
+
+        {{ member_form.others.label(class="form-label") }}
+        {{ member_form.others(class="form-control") }}
+
+        {{ member_form.image.label(class="form-label") }}
+        {{ member_form.image(class="form-control") }}
         <br/>
-        <input type="file" name="file">
+        {{ member_form.recaptcha }}
         <br/>
         <br/>
         {{ member_form.submit(class="btn btn-secondary") }}
@@ -32,3 +53,4 @@
 </div>
 
 {% endblock %}
+

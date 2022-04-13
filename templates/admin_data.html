@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Admin Database</h1>
+    <table class="table table-hover table-bordered table-striped">
+        <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Username</th>
+            <th>First name</th>
+            <th>Middle name</th>
+            <th>Last name</th>
+            <th>Email</th>
+            <th>Role</th>
+        </tr>
+        {% for admin in admin_members %}
+            <tr>
+                <td>{{ admin.id }}</td>
+                <td>{{ admin.title }}</td>
+                <td>{{ admin.username }}</td>
+                <td>{{ admin.first_name }}</a></td>
+                <td>{{ admin.middle_name }}</td>
+                <td>{{ admin.last_name }}</td>
+                <td>{{ admin.email }}</td>
+                <td>{{ admin.role }}</td>
+                <td>{{ admin.address }}</td>
+                <td><a href="{{ url_for('delete_admin', id=admin.id) }}" class="btn btn-danger">DELETE</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

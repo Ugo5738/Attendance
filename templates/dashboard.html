@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="shadow p-3 mb-5 bg-body rounded">
+    <h3>Welcome!</h3>
+    <h3>This is your Dashboard</h3>
+    <div class="card" style="width: 18rem;">
+        <img src="{{ url_for('static', filename='images/default.png') }}" class="card-img-top" alt="...">
+        <div class="card-body">
+            <h5 class="card-title">{{ current_user.username }}</h5>
+            <p class="card-text">Excellent member</p>
+        </div>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">ID: {{ current_user.id }}</li>
+            <li class="list-group-item">Title: {{ current_user.title }}</li>
+            <li class="list-group-item">Username: {{ current_user.username }}</li>
+            <li class="list-group-item">First Name: {{ current_user.first_name }}</li>
+            <li class="list-group-item">Middle Name: {{ current_user.middle_name }}</li>
+            <li class="list-group-item">Last Name: {{ current_user.last_name }}</li>
+            <li class="list-group-item">Email: {{ current_user.email }}</li>
+            <li class="list-group-item">Role: {{ current_user.role }}</li>
+            <li class="list-group-item">Registration Date: {{ current_user.registration_date }}</li>
+        </ul>
+        <div class="card-body">
+            <a href="{{ url_for('logout') }}" class="btn btn-primary">Logout</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

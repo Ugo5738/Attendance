@@ -1,24 +1,42 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Database {{ member_name|capitalize }}</h1>
+<h1>Database</h1>
     <table class="table table-hover table-bordered table-striped">
         <tr>
+            <th>ID</th>
+            <th>Title</th>
             <th>First name</th>
             <th>Middle name</th>
             <th>Last name</th>
-            <th>Email</th>
             <th>Address</th>
-            <th>Image</th>
+            <th>Email</th>
+            <th>Gender</th>
+            <th>Birth Date</th>
+            <th>Phone</th>
+            <th>Country</th>
+            <th>Image Name</th>
         </tr>
         {% for member in all_members %}
             <tr>
-                <td>{{ member.first_name }}</td>
+                <td>{{ member.id }}</td>
+                <td>{{ member.title }}</td>
+                <td><a href="{{ url_for('member', id=member.id) }}">{{ member.first_name }}</a></td>
                 <td>{{ member.middle_name }}</td>
                 <td>{{ member.last_name }}</td>
-                <td>{{ member.email }}</td>
                 <td>{{ member.address }}</td>
+                <td>{{ member.email }}</td>
+                <td>{{ member.gender }}</td>
+                <td>{{ member.birth_date }}</td>
+                <td>{{ member.phone }}</td>
+                <td>{{ member.country }}</td>
+                <td>{{ member.image_name }}</td>
+                <td><a href="{{ url_for('update', id=member.id) }}" class="btn btn-success">UPDATE</a></td>
+                <td><a href="{{ url_for('delete', id=member.id) }}" class="btn btn-danger">DELETE</a></td>
             </tr>
         {% endfor %}
+        {% for image in images%}
+            <li><img src="data:image/png;base64,{{image}}"></li>
+        {%endfor%}
     </table>
 {% endblock %}

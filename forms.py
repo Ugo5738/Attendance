@@ -1,38 +1,63 @@
-from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, FileField
-from wtforms.validators import DataRequired, Email
+from flask_wtf import FlaskForm, RecaptchaField
+from wtforms import (StringField, SubmitField, TextAreaField, PasswordField,
+                     DateField, ValidationError, SelectField)
+from wtforms.fields import TelField
+from wtforms.validators import DataRequired, Email, EqualTo, Length
+from flask_wtf.file import FileField
+import phonenumbers
+import pycountry
 
 
-GENDER_CHOICES = [('1', 'Male'), ('2', 'Female')]
-TITLE_CHOICES = [('1', 'Brother'), ('2', 'Sister'), ('1', 'Pastor')]
-BORN_AGAIN_CHOICES = [('1', 'Yes'), ('2', 'No')]
-KNOW_US = [('1', 'Invited'), ('2', 'Social Media'), ('2', 'Television')]
+COUNTRY_CHOICES = [("", "--Select an option--")]+[(country.name, country.name) for country in pycountry.countries]
+GENDER_CHOICES = [("", "--Select an option--"), ('Male', 'Male'), ('Female', 'Female')]
+TITLE_CHOICES = [("", "--Select an option--"), ('Brother', 'Brother'), ('Sister', 'Sister'), ('Pastor', 'Pastor'),
+                 ('Bible study', 'Bible study'), ('Teacher', 'Teacher'), ('Cell leader', 'Cell leader')]
+BORN_AGAIN_CHOICES = [("", "--Select an option--"), ('1', 'Yes'), ('2', 'No')]
+KNOW_US = [("", "--Select an option--"), ('1', 'Invited'), ('2', 'Social Media'), ('2', 'Television')]
 
 
 # Create a Registration Form Class
 class RegisterForm(FlaskForm):
-    first_name = StringField("First_name:", validators=[DataRequired()])
-    middle_name = StringField("Middle_name:", validators=[DataRequired()])
-    last_name = StringField("Last_name:", validators=[DataRequired()])
+    title = SelectField('Title:', validators=[DataRequired()], choices=TITLE_CHOICES)
+    first_name = StringField("First name:", validators=[DataRequired()])
+    middle_name = StringField("Middle name:", validators=[DataRequired()])
+    last_name = StringField("Last name:", validators=[DataRequired()])
     address = TextAreaField("Address:", validators=[DataRequired()])
     email = StringField("Email: ", validators=[Email()])
-    # image = FileField("Image", validators=[Email()])
+    gender = SelectField("Gender:", validators=[DataRequired()], choices=GENDER_CHOICES)
+    birth_date = DateField("Birth date", validators=[DataRequired()])
+    phone = TelField('Phone: ', validators=[DataRequired()])
+    country = SelectField('Country: ', validators=[DataRequired()], choices=COUNTRY_CHOICES)
+    others = TextAreaField('Others: ')
+    recaptcha = RecaptchaField()
+    image = FileField("Image:", validators=[DataRequired()])
     submit = SubmitField("Submit")
 
-    # age = IntegerField("Age:", validators=[DataRequired()])
-    # gender = SelectField("Gender:", choices=GENDER_CHOICES, validators=[DataRequired()])
-    # phone = IntegerField("Phone:", validators=[DataRequired()])
-    # birth_date = DateTimeField("Birth date", validators=[DataRequired()])
-    # title = StringField("Title:", validators=[DataRequired()])
-    # filename = FileField("Upload an Image of your face")
-    # zip_code = IntegerField("Zip code:", validators=[DataRequired()])
-    # city = StringField("City:", validators=[DataRequired()])
-    # country = StringField("Country:", validators=[DataRequired()])
-    # zone = StringField("Zone:", validators=[DataRequired()])
-    # chapter = StringField("Chapter:", validators=[DataRequired()])
-    # join_date = DateTimeField("When did you join Christ Embassy")
-    # reason_for_joining = TextAreaField("Reason for joining:")
-    # born_again = SelectField("Born Again:", choices=BORN_AGAIN_CHOICES, default=None)
-    # how_did_you_find_us = StringField("How did you find us:", default=None)
-    # attendance =
-    # time =
+    def validate_phone(self, phone):
+        try:
+            p = phonenumbers.parse(phone.data)
+            if not phonenumbers.is_valid_number(p):
+                raise ValueError()
+        except (phonenumbers.phonenumberutil.NumberParseException, ValueError):
+            raise ValidationError('Invalid phone number')
+
+
+# Create an Admin Registration Form Class
+class AdminRegisterForm(FlaskForm):
+    title = StringField("Title:", validators=[DataRequired()])
+    username = StringField("Username:", validators=[DataRequired()])
+    first_name = StringField("First name:", validators=[DataRequired()])
+    middle_name = StringField("Middle name:", validators=[DataRequired()])
+    last_name = StringField("Last name:", validators=[DataRequired()])
+    email = StringField("Email:", validators=[DataRequired()])
+    role = StringField("Role:", validators=[DataRequired()])
+    password_hash = PasswordField('Password', validators=[DataRequired(), EqualTo('password_hash2', message='Passwords must match')])
+    password_hash2 = PasswordField("Confirm Password", validators=[DataRequired()])
+    submit = SubmitField("Submit")
+
+
+# Create a Login Form Class
+class LoginForm(FlaskForm):
+    username = StringField("Username:", validators=[DataRequired()])
+    password_hash = PasswordField("Password", validators=[DataRequired()])
+    submit = SubmitField("Submit")
