@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="card">
+  <div class="card-header">
+    {{ member_data.title }} {{ member_data.first_name }} {{ member_data.last_name }}
+  </div>
+  <div class="card-body">
+    <h5 class="card-title">Welcome to {{ member_data.first_name }}'s Dashboard</h5>
+    <p class="card-text">{{ member_data.first_name }} is a stellar member.</p>
+      <div class="container">
+          <div class="row">
+              <div class="col-8">
+                  <strong>ID: </strong>{{ member_data.id }}<br><br/>
+                  <strong>Title: </strong>{{ member_data.title }}<br><br/>
+                  <strong>First Name: </strong>{{ member_data.first_name }}<br><br/>
+                  <strong>Middle Name: </strong>{{ member_data.middle_name }}<br><br/>
+                  <strong>Last Name: </strong>{{ member_data.last_name }}<br><br/>
+                  <strong>Address: </strong>{{ member_data.address }}<br><br/>
+                  <strong>Email: </strong>{{ member_data.email }}<br><br/>
+                  <strong>Gender: </strong>{{ member_data.gender }}<br><br/>
+                  <strong>Birth Date: </strong>{{ member_data.birth_date }}<br><br/>
+                  <strong>Phone Number: </strong>{{ member_data.phone }}<br><br/>
+                  <strong>Country: </strong>{{ member_data.country }}<br><br/>
+                  <strong>Image Name: </strong>{{ member_data.image }}<br><br/>
+                  <strong>Registration Date: </strong>{{ member_data.registration_date }}<br><br/>
+              </div>
+              <div class="col-4">
+                  <img src="{{ url_for('static', filename='images/default.png') }}" width="250" align="right">
+              </div>
+          </div>
+      </div>
+  </div>
+</div>
+{% endblock %}

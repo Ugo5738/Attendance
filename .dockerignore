@@ -1,0 +1,7 @@
+venv/
+Dockerfiletest
+rt
+test.py
+Testing.csv
+.dockerignore
+attendance2.csv

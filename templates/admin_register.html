@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="shadow p-3 mb-5 bg-body rounded">
+    <h3>Welcome! this is the Admin Registration Form</h3>
+    <br/>
+    <form method="POST" enctype="multipart/form-data">
+        {{ admin_form.hidden_tag() }}
+
+        {{ admin_form.title.label(class="form-label") }}
+        {{ admin_form.title(class="form-control") }}
+
+        {{ admin_form.username.label(class="form-label") }}
+        {{ admin_form.username(class="form-control") }}
+
+        {{ admin_form.first_name.label(class="form-label") }}
+        {{ admin_form.first_name(class="form-control") }}
+
+        {{ admin_form.middle_name.label(class="form-label") }}
+        {{ admin_form.middle_name(class="form-control") }}
+
+        {{ admin_form.last_name.label(class="form-label") }}
+        {{ admin_form.last_name(class="form-control") }}
+
+        {{ admin_form.email.label(class="form-label") }}
+        {{ admin_form.email(class="form-control") }}
+
+        {{ admin_form.role.label(class="form-label") }}
+        {{ admin_form.role(class="form-control") }}
+
+        {{ admin_form.password_hash.label(class="form-label") }}
+        {{ admin_form.password_hash(class="form-control") }}
+
+        {{ admin_form.password_hash2.label(class="form-label") }}
+        {{ admin_form.password_hash2(class="form-control") }}
+
+        <br/>
+        {{ admin_form.submit(class="btn btn-secondary") }}
+    </form>
+</div>
+
+{% endblock %}
