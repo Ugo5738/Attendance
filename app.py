@@ -26,10 +26,10 @@ app.config['TESTING'] = False  # True  # set to False when in production
 
 # New SQL DB
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@passWord321@localhost/membership'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://daniel:mynewpassword@localhost/membership'
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://yhbfpbwijuxtew:19ad145737810cf047a08392b9ad65f07bc0648a4a2' \
-#                                         'd82f874a3ec758f4ea596@ec2-34-192-210-139.compute-1.amazonaws.com:5432' \
-#                                         '/d6d6v171o76vmm'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://daniel:mynewpassword@localhost/membership'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://hflizrksgopagt:9c61415a60cea5290fd6560c2bd73c7dddd494467d901d4' \
+                                        '72f16bcb431508518@ec2-52-73-155-171.compute-1.amazonaws.com:5432/dcc0i20p8p' \
+                                        '2clg'
 app.config['SECRET_KEY'] = "super awesome! great to be working on this"
 app.config['IMAGE_FOLDER'] = 'Images_upload/'
 db = SQLAlchemy(app)
