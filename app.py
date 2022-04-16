@@ -19,7 +19,7 @@ app = Flask(__name__)
 
 app.config['RECAPTCHA_PUBLIC_KEY'] = '6LfeimMfAAAAAC2hKQHjkk-y0lxdhhXIOD1x6NKF'
 app.config['RECAPTCHA_PRIVATE_KEY'] = '6LfeimMfAAAAAIWVc5VSBC1zlKhd65Ic1E2Bqcrf'
-app.config['TESTING'] = True  # set to False when in production
+app.config['TESTING'] = False  # True  # set to False when in production
 
 # Old SQLite DB
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///membership.db'
@@ -215,16 +215,6 @@ def logout():
 @login_required
 def dashboard():
     return render_template('dashboard.html')
-
-
-'''@app.route("/test", methods=['GET', 'POST'])
-def test():
-    member_form = RegisterForm()
-    if member_form.validate_on_submit():
-        full_name = f"{member_form.first_name.data} {member_form.middle_name.data} {member_form.last_name.data}."
-        name = images.save(member_form.image.data)# , name=full_name)
-        return f"File name: {name}"
-    return render_template('test.html', member_form=member_form)'''
 
 
 def success():

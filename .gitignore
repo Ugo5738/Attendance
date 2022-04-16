@@ -1,3 +1,4 @@
-.gitignore
 venv/
+.gitignore
 .idea
+fulldependencies.txt

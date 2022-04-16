@@ -25,12 +25,15 @@ WED_START_TIME = 16
 WED_STOP_TIME = 21
 SUN_START_TIME = 6
 SUN_STOP_TIME = 17
+os.environ.get("SPECIAL_PROGRAM_START_TIME", 16)
+os.environ.get("SPECIAL_PROGRAM_STOP_TIME", 21)
 FILE_NAME = 'Attendance.csv'
 
 now = datetime.now()
 time = now.strftime('%H:%M:%S')
 date = now.strftime('%d-%B-%Y')
 day = now.strftime('%A')
+os.environ["SPECIAL_DAY"] = ''
 
 for image_class in imageList:
     currentImg = cv2.imread(f"{path}/{image_class}")
@@ -64,7 +67,7 @@ class MarkAttendance:
             rows = content[1:]
             for entry in rows:
                 entry = entry.split(", ")
-                entry[-1] = entry[-1].split()[0]  # not sure this line is needed
+                entry[-1] = entry[-1].split()[0]  # not sure that this line is needed
                 full_name = f'{entry[0]} {entry[1]} {entry[2]}'
                 name_list.append(full_name)
             if person_name not in name_list:
@@ -115,20 +118,21 @@ encode_list_for_known_faces = get_encodings(images)
 
 START = False
 
-if today.day == "Wednesday":
+if day == "Wednesday":
     if today.hour in range(WED_START_TIME, WED_STOP_TIME+1):
         START = True
-elif today.day == "Sunday":
+elif day == "Sunday":
     if today.hour in range(SUN_START_TIME, SUN_STOP_TIME+1):
+        START = True
+elif day == os.environ["SPECIAL_DAY"]:
+    if today.hour in range(int(os.environ["SPECIAL_PROGRAM_START_TIME"]), int(os.environ["SPECIAL_PROGRAM_STOP_TIME"])):
         START = True
 
 
-if START:
-    def show_vid():
-        # url = "http://172.20.10.4:8080/shot.jpg"
-        # url = "http://213.255.147.195:8080/shot.jpg"
+def show_vid():
+    if START:
         # url = os.environ["URL"]
-        url = os.environ.get("URL", "http://172.20.10.7:8080/shot.jpg")  # this give it a default that can be changed
+        url = os.environ.get("URL", "http://154.118.35.145:8080/shot.jpg")  # this give it a default that can be changed
 
         while True:
             # capture frame by frame
