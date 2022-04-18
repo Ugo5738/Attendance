@@ -8,30 +8,16 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from flask_uploads import configure_uploads, IMAGES, UploadSet
 from forms import LoginForm, RegisterForm, AdminRegisterForm
 from attendance import show_vid, attendance_db
 from uuid import uuid1
 import base64
+from dotenv import load_dotenv
 
 
 app = Flask(__name__)
+app.config.from_pyfile('config.py')
 
-app.config['RECAPTCHA_PUBLIC_KEY'] = '6LfeimMfAAAAAC2hKQHjkk-y0lxdhhXIOD1x6NKF'
-app.config['RECAPTCHA_PRIVATE_KEY'] = '6LfeimMfAAAAAIWVc5VSBC1zlKhd65Ic1E2Bqcrf'
-app.config['TESTING'] = False  # True  # set to False when in production
-
-# Old SQLite DB
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///membership.db'
-
-# New SQL DB
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@passWord321@localhost/membership'
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://daniel:mynewpassword@localhost/membership'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://hflizrksgopagt:9c61415a60cea5290fd6560c2bd73c7dddd494467d901d4' \
-                                        '72f16bcb431508518@ec2-52-73-155-171.compute-1.amazonaws.com:5432/dcc0i20p8p' \
-                                        '2clg'
-app.config['SECRET_KEY'] = "super awesome! great to be working on this"
-app.config['IMAGE_FOLDER'] = 'Images_upload/'
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
@@ -74,10 +60,9 @@ class Members(db.Model):
     birth_date = db.Column(db.String(50), nullable=False)
     phone = db.Column(db.String(50), nullable=False)
     country = db.Column(db.String(100), nullable=False)
-    # others = db.Column(db.String())
     image_name = db.Column(db.String(100), nullable=False)
-    image_data = db.Column(db.LargeBinary, nullable=False)
-    render_data = db.Column(db.Text, nullable=False)
+    image_data = db.Column(db.LargeBinary(), nullable=False)
+    render_data = db.Column(db.Text(), nullable=False)
     registration_date = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Create String
@@ -151,7 +136,7 @@ def register():
             checked_email = Members.query.filter_by(email=email).first()
             first_name = member_form.first_name.data
             if checked_email is None:
-                file = request.files['image']
+                file = request.files['data']
                 image = file.read()
                 render_image = base64.b64encode(image).decode('ascii')
                 ext = file.filename.split('.')[1]
@@ -175,7 +160,6 @@ def register():
                                  render_data=render_image)
                 db.session.add(member)
                 db.session.commit()
-                print("I am here")
                 return render_template("success.html", first_name=first_name)
             return render_template("registered.html",
                                    first_name=first_name)
@@ -238,16 +222,17 @@ def update(id):
     member_form = RegisterForm()
     member_to_update = Members.query.get_or_404(id)
     if request.method == "POST":
-        f = request.files['file']
-        ext = f.filename.split('.')[1]
+        file = request.files['file']
+        image = file.read()
+        render_image = base64.b64encode(image).decode('ascii')
+        ext = file.filename.split('.')[1]
         file_name = f"{member_form.first_name.data} {member_form.middle_name.data} {member_form.last_name.data}.{ext.lower()}"
         image_path = app.config['IMAGE_FOLDER'] + file_name
-        if file_name in os.listdir(app.config['IMAGE_FOLDER']):
-            os.remove(image_path)
-        f.save(app.config['IMAGE_FOLDER'] + file_name)
-
         secure_image = secure_filename(file_name)
         image_name = str(uuid1()) + "_" + secure_image
+        if file_name in os.listdir(app.config['IMAGE_FOLDER']):
+            os.remove(image_path)
+        file.save(app.config['IMAGE_FOLDER'] + file_name)
 
         member_to_update.title = request.form['title']
         member_to_update.first_name = request.form['first_name']
@@ -260,8 +245,8 @@ def update(id):
         member_to_update.phone = request.form['phone']
         member_to_update.country = request.form['country']
         member_to_update.image_name = image_name
-        # member_to_update.filename = f.filename
-        # member_to_update.data = f.read()
+        member_to_update.image_data = image
+        member_to_update.render_data = render_image
         try:
             db.session.commit()
             return render_template("updated.html",

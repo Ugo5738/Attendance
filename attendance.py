@@ -132,7 +132,7 @@ elif day == os.environ["SPECIAL_DAY"]:
 def show_vid():
     if START:
         # url = os.environ["URL"]
-        url = os.environ.get("URL", "http://41.217.49.116:8080/shot.jpg")  # this give it a default that can be changed
+        url = os.environ.get("URL", "http://154.118.11.182:8080/shot.jpg")  # this give it a default that can be changed
 
         while True:
             # capture frame by frame

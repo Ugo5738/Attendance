@@ -1,4 +1,6 @@
 venv/
 .gitignore
+.dockerignore
 .idea
 fulldependencies.txt
+.env
