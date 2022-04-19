@@ -213,7 +213,6 @@ def home():
 @app.route('/database')
 def database():
     all_members = Members.query.order_by(Members.registration_date)
-
     return render_template("database.html", all_members=all_members)
 
 
