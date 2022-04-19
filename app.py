@@ -1,6 +1,7 @@
 # APP.PY MODULES
 import os
 import os.path
+from pathlib import Path
 
 from flask import Flask, render_template, request, Response, flash, redirect, url_for
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
@@ -29,7 +30,7 @@ import cv2
 import numpy as np
 import face_recognition
 import urllib.request as rq
-import os
+# import os
 # from datetime import datetime
 from calendar import Calendar
 import csv
@@ -92,7 +93,10 @@ class LoginForm(FlaskForm):
 
 # ATTENDANCE.PY CONTENT
 # path = "Attendance/Images_upload/"
-path = "Images_upload/"
+# path = "Images_upload/"
+basepath = Path(__file__).parent
+path = os.path.join(basepath, "Images_upload")
+
 images = []
 classNames = []
 imageList = os.listdir(path)
@@ -212,7 +216,7 @@ elif day == os.environ.get("SPECIAL_DAY", ''):
 
 def show_vid():
     if START:
-        # url = os.environ["URL"]
+        # url = os.environ["CAM_URL"]
         url = os.environ.get("CAM_URL", "http://154.118.11.182:8080/shot.jpg")  # this give it a default that can be changed
 
         while True:
