@@ -1,6 +1,6 @@
 venv/
+.env
 .gitignore
 .dockerignore
-.idea
 fulldependencies.txt
-.env
+heroku.yml3
