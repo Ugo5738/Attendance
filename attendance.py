@@ -3,13 +3,15 @@ import numpy as np
 import face_recognition
 import urllib.request as request
 import os
+from pathlib import Path
 from datetime import datetime
 from calendar import Calendar
 import csv
 
 
-# path = "Attendance/Images_upload/"
-path = "Images_upload/"
+base_path = Path(__file__).parent
+path = os.path.join(base_path, "Images_upload")
+
 images = []
 classNames = []
 imageList = os.listdir(path)
