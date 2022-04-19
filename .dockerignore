@@ -1,7 +1,0 @@
-venv/
-.dockerignore
-.env
-.gitignore
-fulldependencies.txt
-heroku.yml3
-create_db.py
