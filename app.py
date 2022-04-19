@@ -136,7 +136,7 @@ def register():
             checked_email = Members.query.filter_by(email=email).first()
             first_name = member_form.first_name.data
             if checked_email is None:
-                file = request.files['data']
+                file = request.files['image']
                 image = file.read()
                 render_image = base64.b64encode(image).decode('ascii')
                 ext = file.filename.split('.')[1]

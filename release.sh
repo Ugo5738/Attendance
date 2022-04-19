@@ -1,3 +1,5 @@
-from app import db
+#!/bin/bash
 
-db.create_all()
+# echo "Today is just great"
+
+python -c 'import app; print app.db.create_all()'

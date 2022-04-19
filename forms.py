@@ -29,7 +29,6 @@ class RegisterForm(FlaskForm):
     phone = TelField('Phone: ', validators=[DataRequired()])
     country = SelectField('Country: ', validators=[DataRequired()], choices=COUNTRY_CHOICES)
     # others = TextAreaField('Others: ')
-    recaptcha = RecaptchaField()
     image = FileField("Image:", validators=[DataRequired()])
     submit = SubmitField("Submit")
 
