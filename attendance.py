@@ -25,15 +25,12 @@ WED_START_TIME = 16
 WED_STOP_TIME = 21
 SUN_START_TIME = 6
 SUN_STOP_TIME = 17
-os.environ.get("SPECIAL_PROGRAM_START_TIME", 16)
-os.environ.get("SPECIAL_PROGRAM_STOP_TIME", 21)
 FILE_NAME = 'Attendance.csv'
 
 now = datetime.now()
 time = now.strftime('%H:%M:%S')
 date = now.strftime('%d-%B-%Y')
 day = now.strftime('%A')
-os.environ["SPECIAL_DAY"] = ''
 
 for image_class in imageList:
     currentImg = cv2.imread(f"{path}/{image_class}")
@@ -124,15 +121,16 @@ if day == "Wednesday":
 elif day == "Sunday":
     if today.hour in range(SUN_START_TIME, SUN_STOP_TIME+1):
         START = True
-elif day == os.environ["SPECIAL_DAY"]:
-    if today.hour in range(int(os.environ["SPECIAL_PROGRAM_START_TIME"]), int(os.environ["SPECIAL_PROGRAM_STOP_TIME"])):
+elif day == os.environ.get("SPECIAL_DAY", ''):
+    if today.hour in range(int(os.environ.get("SPECIAL_PROGRAM_START_TIME", '')),
+                           int(os.environ.get("SPECIAL_PROGRAM_STOP_TIME", ''))):
         START = True
 
 
 def show_vid():
     if START:
         # url = os.environ["URL"]
-        url = os.environ.get("URL", "http://154.118.11.182:8080/shot.jpg")  # this give it a default that can be changed
+        url = os.environ.get("CAM_URL", "http://154.118.11.182:8080/shot.jpg")  # this give it a default that can be changed
 
         while True:
             # capture frame by frame
@@ -180,7 +178,7 @@ def show_vid():
                 # else:
                 #     mark_attendance(name)
 
-            cv2.imshow("video", img)
+            # cv2.imshow("video", img)
 
             ret, buffer = cv2.imencode('.jpg', img)
             frame = buffer.tobytes()
