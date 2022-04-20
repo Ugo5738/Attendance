@@ -378,7 +378,7 @@ def files():
     s3_resource = session.resource('s3')
     my_bucket = s3_resource.Bucket(os.environ["S3_BUCKET"])
     summaries = my_bucket.objects.all()
-    return render_template("ImageDB.html", my_bucket=my_bucket, files=summaries)
+    return render_template("imageDB.html", my_bucket=my_bucket, files=summaries)
 
 
 # Admin Registration page
