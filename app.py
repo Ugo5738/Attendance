@@ -10,8 +10,11 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 # from .forms import LoginForm, RegisterForm, AdminRegisterForm
 # from .attendance import show_vid, attendance_db
+# from filters import datetimeformat
 from uuid import uuid1
 import base64
+import boto3
+from dotenv import load_dotenv
 
 
 # FORM.PY MODULES
@@ -37,6 +40,29 @@ from calendar import Calendar
 import csv
 
 
+# FILTERS.PY MODULES
+import arrow
+import mimetypes
+
+
+load_dotenv()
+
+
+# FILTERS CONTENT
+def datetimeformat(date_str):
+    dt = arrow.get(date_str)
+    return dt.humanize()
+
+
+def file_type(key):
+    file_info = os.path.splitext(key)
+    file_extension = file_info[1]
+    try:
+        return mimetypes.types_map[file_extension]
+    except KeyError():
+        return "Unknown"
+
+
 # ATTENDANCE CONTENT
 base_path = Path(__file__).parent
 path = os.path.join(base_path, "Images_upload")
@@ -52,16 +78,13 @@ today = datetime.now()
 
 YEAR = today.year
 MONTH = today.month
-WED_START_TIME = 16
-WED_STOP_TIME = 21
-SUN_START_TIME = 6
-SUN_STOP_TIME = 17
 FILE_NAME = 'Attendance.csv'
 
 now = datetime.now()
 time = now.strftime('%H:%M:%S')
 date = now.strftime('%d-%B-%Y')
 day = now.strftime('%A')
+hour = now.strftime('%H')
 
 for image_class in imageList:
     currentImg = cv2.imread(f"{path}/{image_class}")
@@ -144,71 +167,61 @@ encode_list_for_known_faces = get_encodings(images)
 # video_capture = cv2.VideoCapture(0)
 
 
-START = False
-
-if day == os.environ.get("SPECIAL_DAY", '').capitalize():
-    if today.hour in range(int(os.environ.get("SPECIAL_PROGRAM_START_TIME", '')),
-                           int(os.environ.get("SPECIAL_PROGRAM_STOP_TIME", ''))):
-        START = True
-
-
 def show_vid():
-    if START:
-        # url = os.environ["URL"]
-        url = os.environ.get("CAM_URL", "http://154.120.97.33:8080/shot.jpg")  # this give it a default that can be changed
+    url = [os.environ["CAM_URL"], os.environ["CAM_URL2"]]
 
-        while True:
-            # capture frame by frame
-            # success, img = video_capture.read()
-            # if not success:
-            #     break
+    while True:
+        # capture frame by frame
+        # success, img = video_capture.read()
+        # if not success:
+        #     break
 
-            # if using the phone webcam
-            img_resp = rq.urlopen(url)
-            img_np = np.array(bytearray(img_resp.read()), dtype=np.uint8)
-            img = cv2.imdecode(img_np, -1)
-            print(img)
+        # if using the phone webcam
+        img_resp = rq.urlopen(url[0])
+        img_np = np.array(bytearray(img_resp.read()), dtype=np.uint8)
+        img = cv2.imdecode(img_np, -1)
+        print(img)
 
-            # to resize output
-            # width = int(cap.get(3))
-            # height = int(cap.get(4))
-            # cv2.resize(img, (0, 0), fx=0.5, fx=0.5)
+        # to resize output
+        # width = int(cap.get(3))
+        # height = int(cap.get(4))
+        # cv2.resize(img, (0, 0), fx=0.5, fx=0.5)
 
-            # resize frame for use
-            img_small = cv2.resize(img, (0, 0), None, 0.25, 0.25)
-            img_small = cv2.cvtColor(img_small, cv2.COLOR_BGR2RGB)
-            # cv2.imshow('image_small', img_small)
+        # resize frame for use
+        img_small = cv2.resize(img, (0, 0), None, 0.25, 0.25)
+        img_small = cv2.cvtColor(img_small, cv2.COLOR_BGR2RGB)
+        # cv2.imshow('image_small', img_small)
 
-            face_locations = face_recognition.face_locations(img_small)
-            encoded_faces = face_recognition.face_encodings(img_small, face_locations)
+        face_locations = face_recognition.face_locations(img_small)
+        encoded_faces = face_recognition.face_encodings(img_small, face_locations)
 
-            # for encodeFace, faceLoc in zip(encoded_faces, face_locations): # you can use an enumerate here
-            for ind, (encodeFace, faceLoc) in enumerate(zip(encoded_faces, face_locations)):
-                matches = face_recognition.compare_faces(encode_list_for_known_faces, encodeFace)
-                name = "New member recognized"
-                face_dist = face_recognition.face_distance(encode_list_for_known_faces, encodeFace)
-                # print(face_dist)
-                match_index = np.argmin(face_dist)
-                print("match_index gotten", match_index)
+        # for encodeFace, faceLoc in zip(encoded_faces, face_locations): # you can use an enumerate here
+        for ind, (encodeFace, faceLoc) in enumerate(zip(encoded_faces, face_locations)):
+            matches = face_recognition.compare_faces(encode_list_for_known_faces, encodeFace)
+            name = "New member recognized"
+            face_dist = face_recognition.face_distance(encode_list_for_known_faces, encodeFace)
+            # print(face_dist)
+            match_index = np.argmin(face_dist)
+            print("match_index gotten", match_index)
 
-                # display bounding box and name on image
-                if matches[match_index]:
-                    name = classNames[match_index].upper()
-                y1, x2, y2, x1 = faceLoc
-                y1, x2, y2, x1 = y1*4, x2*4, y2*4, x1*4
-                cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                cv2.rectangle(img, (x1, y2-35), (x2, y2), (0, 255, 0), cv2.FILLED)
-                cv2.putText(img, name, (x1+6, y2-6), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
-                mark_attendance.mark_present(name)
-                # else:
-                #     mark_attendance(name)
+            # display bounding box and name on image
+            if matches[match_index]:
+                name = classNames[match_index].upper()
+            y1, x2, y2, x1 = faceLoc
+            y1, x2, y2, x1 = y1*4, x2*4, y2*4, x1*4
+            cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            cv2.rectangle(img, (x1, y2-35), (x2, y2), (0, 255, 0), cv2.FILLED)
+            cv2.putText(img, name, (x1+6, y2-6), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
+            mark_attendance.mark_present(name)
+            # else:
+            #     mark_attendance(name)
 
-            # cv2.imshow("video", img)
+        # cv2.imshow("video", img)
 
-            ret, buffer = cv2.imencode('.jpg', img)
-            frame = buffer.tobytes()
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        ret, buffer = cv2.imencode('.jpg', img)
+        frame = buffer.tobytes()
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 
 # FORM.PY CONTENTS
@@ -267,8 +280,16 @@ class LoginForm(FlaskForm):
 
 
 # APP.PY CONTENT
+session = boto3.Session(
+                   aws_access_key_id=os.environ["S3_KEY"],
+                   aws_secret_access_key=os.environ["S3_SECRET"]
+                   )
+
+
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
+app.jinja_env.filters['datetimeformat'] = datetimeformat
+app.jinja_env.filters['file_type'] = file_type
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
@@ -350,6 +371,14 @@ def index():
 @app.route('/video_feed')
 def video_feed():
     return Response(show_vid(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route('/files')
+def files():
+    s3_resource = session.resource('s3')
+    my_bucket = s3_resource.Bucket(os.environ["S3_BUCKET"])
+    summaries = my_bucket.objects.all()
+    return render_template("ImageDB.html", my_bucket=my_bucket, files=summaries)
 
 
 # Admin Registration page

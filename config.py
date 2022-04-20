@@ -15,5 +15,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 IMAGE_FOLDER = os.environ.get('IMAGE_FOLDER', 'Images_upload/')
 
 # AWS Secrets
-AWS_SECRET_KEY = os.environ.get('AWS_SECRET_KEY')
-AWS_KEY_ID = os.environ.get('AWS_KEY_ID')
+S3_BUCKET = os.environ["S3_BUCKET"]
+S3_KEY = os.environ["S3_KEY"]
+S3_SECRET = os.environ["S3_SECRET"]
+# S3_LOCATION = f'http://{S3_BUCKET}.s3.amazonaws.com/'.format(S3_BUCKET)
