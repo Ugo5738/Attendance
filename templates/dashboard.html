@@ -20,7 +20,7 @@
             <li class="list-group-item">Last Name: {{ current_user.last_name }}</li>
             <li class="list-group-item">Email: {{ current_user.email }}</li>
             <li class="list-group-item">Role: {{ current_user.role }}</li>
-            <li class="list-group-item">Registration Date: {{ current_user.registration_date }}</li>
+            <li class="list-group-item">Registration Date: {{ current_user.registration_date | datetimeformat }}</li>
         </ul>
         <div class="card-body">
             <a href="{{ url_for('logout') }}" class="btn btn-primary">Logout</a>

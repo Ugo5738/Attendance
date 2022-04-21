@@ -86,12 +86,6 @@ day = now.strftime('%A')
 hour = now.strftime('%H')
 
 
-CAM_START = False
-if day == os.environ.get("CHURCH_DAY", ""):
-    if today.hour in range(int(os.environ.get("CHURCH_START_TIME", "")),
-                           int(os.environ.get("CHURCH_STOP_TIME", ""))):
-        CAM_START = True
-
 for image_class in imageList:
     currentImg = cv2.imread(f"{path}/{image_class}")
     images.append(currentImg)
@@ -174,8 +168,15 @@ encode_list_for_known_faces = get_encodings(images)
 
 
 def show_vid():
+    CAM_START = False
+
+    if day == os.environ.get("CHURCH_DAY", ""):
+        if today.hour in range(int(os.environ.get("CHURCH_START_TIME", "")),
+                               int(os.environ.get("CHURCH_STOP_TIME", ""))):
+            CAM_START = True
+
     if CAM_START:
-        url = [os.environ["CAM_URL"], os.environ["CAM_URL2"]]
+        url = [os.environ["CAM_URL"], os.environ.get("CAM_URL2", "")]
 
         while True:
             # capture frame by frame
@@ -287,7 +288,7 @@ class LoginForm(FlaskForm):
 
 # Create a Cam Form Class
 class CamForm(FlaskForm):
-    ip = SelectField('Ip:', validators=[DataRequired()])
+    ip = StringField('Ip:', validators=[DataRequired()])
     port = StringField("Port:")
     day = StringField("Day:")
     start_time = StringField("Start time:")
@@ -384,6 +385,7 @@ class AdminMembers(db.Model, UserMixin):
 
 @app.route('/home')
 def index():
+
     return render_template('index.html')
 
 
@@ -555,43 +557,23 @@ def update(id):
     member_form = RegisterForm()
     member_to_update = Members.query.get_or_404(id)
     if request.method == "POST":
-        file = request.files['file']
-        image = file.read()
-        render_image = base64.b64encode(image).decode('ascii')
-        ext = file.filename.split('.')[1]
-        file_name = f"{member_form.first_name.data} {member_form.middle_name.data} {member_form.last_name.data}.{ext.lower()}"
-        image_path = app.config['IMAGE_FOLDER'] + file_name
-        secure_image = secure_filename(file_name)
-        image_name = str(uuid1()) + "_" + secure_image
-        if file_name in os.listdir(app.config['IMAGE_FOLDER']):
-            os.remove(image_path)
-        file.save(app.config['IMAGE_FOLDER'] + file_name)
-
-        member_to_update.title = request.form['title']
-        member_to_update.first_name = request.form['first_name']
-        member_to_update.middle_name = request.form['middle_name']
-        member_to_update.last_name = request.form['last_name']
-        member_to_update.address = request.form['address']
-        member_to_update.email = request.form['email']
-        member_to_update.gender = request.form['gender']
-        member_to_update.birth_date = request.form['birth_date']
-        member_to_update.phone = request.form['phone']
-        member_to_update.country = request.form['country']
-        member_to_update.image_name = image_name
-        member_to_update.image_data = image
-        member_to_update.render_data = render_image
-        try:
-            db.session.commit()
-            return render_template("updated.html",
-                                   first_name=member_to_update.first_name)
-        except:
-            return render_template("update.html",
-                                   member_form=member_form,
-                                   member_to_update=member_to_update)
-    else:
-        return render_template("update.html",
-                               member_form=member_form,
-                               member_to_update=member_to_update)
+        if member_form.validate_on_submit():
+            member_to_update.title = request.form['title']
+            member_to_update.first_name = request.form['first_name']
+            member_to_update.middle_name = request.form['middle_name']
+            member_to_update.last_name = request.form['last_name']
+            member_to_update.address = request.form['address']
+            member_to_update.email = request.form['email']
+            member_to_update.gender = request.form['gender']
+            member_to_update.birth_date = request.form['birth_date']
+            member_to_update.phone = request.form['phone']
+            member_to_update.country = request.form['country']
+            try:
+                db.session.commit()
+                return render_template("updated.html", first_name=member_to_update.first_name)
+            except:
+                return render_template("update.html", member_form=member_form, member_to_update=member_to_update)
+    return render_template("update.html", member_form=member_form, member_to_update=member_to_update)
 
 
 @app.route('/delete/<int:id>')
