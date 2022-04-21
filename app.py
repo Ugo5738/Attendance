@@ -246,7 +246,7 @@ class RegisterForm(FlaskForm):
     phone = TelField('Phone: ', validators=[DataRequired()])
     country = SelectField('Country: ', validators=[DataRequired()], choices=COUNTRY_CHOICES)
     # others = TextAreaField('Others: ')
-    image = FileField("Image:", validators=[DataRequired()])
+    # image = FileField("Image:", validators=[DataRequired()])
     submit = SubmitField("Submit")
 
     def validate_phone(self, phone):
@@ -281,9 +281,9 @@ class LoginForm(FlaskForm):
 
 # APP.PY CONTENT
 session = boto3.Session(
-                   aws_access_key_id=os.environ["S3_KEY"],
-                   aws_secret_access_key=os.environ["S3_SECRET"]
-                   )
+    aws_access_key_id=os.environ["S3_KEY"],
+    aws_secret_access_key=os.environ["S3_SECRET"]
+)
 
 
 app = Flask(__name__)
@@ -329,9 +329,6 @@ class Members(db.Model):
     birth_date = db.Column(db.String(50), nullable=False)
     phone = db.Column(db.String(50), nullable=False)
     country = db.Column(db.String(100), nullable=False)
-    image_name = db.Column(db.String(100), nullable=False)
-    image_data = db.Column(db.LargeBinary(), nullable=False)
-    render_data = db.Column(db.Text(), nullable=False)
     registration_date = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Create String
@@ -413,35 +410,38 @@ def register():
             checked_email = Members.query.filter_by(email=email).first()
             first_name = member_form.first_name.data
             if checked_email is None:
-                file = request.files['image']
-                image = file.read()
-                render_image = base64.b64encode(image).decode('ascii')
-                ext = file.filename.split('.')[1]
-                file_name = f"{member_form.first_name.data} {member_form.middle_name.data} {member_form.last_name.data}.{ext.lower()}"
-                secure_image = secure_filename(file_name)
-                image_name = str(uuid1()) + "_" + secure_image
-                file.save(app.config['IMAGE_FOLDER'] + file_name)
-                first_name = member_form.first_name.data
-                member = Members(title=member_form.title.data,
-                                 first_name=member_form.first_name.data,
-                                 middle_name=member_form.middle_name.data,
-                                 last_name=member_form.last_name.data,
-                                 address=member_form.address.data,
-                                 email=member_form.email.data,
-                                 gender=member_form.gender.data,
-                                 birth_date=member_form.birth_date.data,
-                                 phone=member_form.phone.data,
-                                 country=member_form.country.data,
-                                 image_data=image,
-                                 image_name=image_name,
-                                 render_data=render_image)
-                db.session.add(member)
+                reg_member = Members(title=member_form.title.data,
+                                     first_name=member_form.first_name.data,
+                                     middle_name=member_form.middle_name.data,
+                                     last_name=member_form.last_name.data,
+                                     address=member_form.address.data,
+                                     email=member_form.email.data,
+                                     gender=member_form.gender.data,
+                                     birth_date=member_form.birth_date.data,
+                                     phone=member_form.phone.data,
+                                     country=member_form.country.data)
+                db.session.add(reg_member)
                 db.session.commit()
-                return render_template("success.html", first_name=first_name)
-            return render_template("registered.html",
-                                   first_name=first_name)
-    return render_template("register.html",
-                           member_form=member_form)
+                email_id = Members.query.filter_by(email=email).first().id
+                return redirect(url_for("upload", id=email_id))
+            return render_template("registered.html", first_name=first_name)
+    return render_template("register.html", member_form=member_form)
+
+
+@app.route("/upload/<int:id>", methods=["GET", "POST"])
+def upload(id):
+    member_image_update = Members.query.get_or_404(id)
+    if request.method == 'POST':
+        file = request.files['file']
+        ext = file.filename.split('.')[1]
+        file_name = f"{member_image_update.first_name} {member_image_update.middle_name} {member_image_update.last_name}.{ext.lower()}"
+        s3_resource = session.resource('s3')
+        my_bucket = s3_resource.Bucket(os.environ["S3_BUCKET"])
+        my_bucket.Object(file_name).put(Body=file)
+        image_path = os.path.join(path, file_name)
+        my_bucket.download_file(file_name, image_path)
+        return render_template("uploaded.html", first_name=member_image_update.first_name)
+    return render_template("upload.html", first_name=member_image_update.first_name)
 
 
 @app.route("/login", methods=['GET', 'POST'])
