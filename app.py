@@ -23,7 +23,6 @@ from wtforms import (StringField, SubmitField, TextAreaField, PasswordField,
                      DateField, ValidationError, SelectField)
 from wtforms.fields import TelField
 from wtforms.validators import DataRequired, Email, EqualTo, Length
-from flask_wtf.file import FileField
 import phonenumbers
 import pycountry
 
@@ -296,6 +295,12 @@ class CamForm(FlaskForm):
     submit = SubmitField("Turn On")
 
 
+# Create access form
+class AccessForm(FlaskForm):
+    access_key = StringField("Access key:", validators=[DataRequired()])
+    submit = SubmitField("Submit")
+
+
 # APP.PY CONTENT
 session = boto3.Session(
     aws_access_key_id=os.environ["S3_KEY"],
@@ -418,6 +423,16 @@ def files():
     my_bucket = s3_resource.Bucket(os.environ["S3_BUCKET"])
     summaries = my_bucket.objects.all()
     return render_template("imageDB.html", my_bucket=my_bucket, files=summaries)
+
+
+@app.route("/access", methods=["POST", "GET"])
+def access():
+    access_form = AccessForm()
+    if request.method == 'POST':
+        if access_form.validate_on_submit():
+            if access_form.access_key.data == os.environ["ACCESS_KEY"]:
+                return redirect(url_for("admin_register"))
+    return render_template('access.html', access_form=access_form)
 
 
 # Admin Registration page
