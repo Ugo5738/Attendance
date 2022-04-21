@@ -23,10 +23,6 @@ today = datetime.now()
 
 YEAR = today.year
 MONTH = today.month
-WED_START_TIME = 16
-WED_STOP_TIME = 21
-SUN_START_TIME = 6
-SUN_STOP_TIME = 17
 FILE_NAME = 'Attendance.csv'
 
 now = datetime.now()
@@ -117,22 +113,16 @@ encode_list_for_known_faces = get_encodings(images)
 
 START = False
 
-if day == "Wednesday":
-    if today.hour in range(WED_START_TIME, WED_STOP_TIME+1):
-        START = True
-elif day == "Sunday":
-    if today.hour in range(SUN_START_TIME, SUN_STOP_TIME+1):
-        START = True
-elif day == os.environ.get("SPECIAL_DAY", ''):
-    if today.hour in range(int(os.environ.get("SPECIAL_PROGRAM_START_TIME", '')),
-                           int(os.environ.get("SPECIAL_PROGRAM_STOP_TIME", ''))):
+if day == os.environ.get("CHURCH_DAY", ''):
+    if today.hour in range(int(os.environ.get("CHURCH_START_TIME", '')),
+                           int(os.environ.get("CHURCH_STOP_TIME", ''))):
         START = True
 
 
 def show_vid():
     if START:
         # url = os.environ["URL"]
-        url = os.environ.get("CAM_URL", "http://154.118.11.182:8080/shot.jpg")  # this give it a default that can be changed
+        url = os.environ.get("CAM_URL", "http://154.118.11.182:8080/shot.jpg")
 
         while True:
             # capture frame by frame

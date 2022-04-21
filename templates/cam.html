@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<!--
+<div class="container">
+    <input type="checkbox" id="switch"/><label for="switch">Toggle</label>
+</div>
+-->
+
+<div class="shadow p-3 mb-5 bg-body rounded">
+    <h3>Turn on the Recogg here!</h3>
+    <br/>
+    <form method="POST" enctype="multipart/form-data">
+        {{ cam_form.hidden_tag() }}
+
+
+        {{ cam_form.ip.label(class="form-label") }}
+        {{ cam_form.ip(class="form-control") }}
+
+        {{ cam_form.port.label(class="form-label") }}
+        {{ cam_form.port(class="form-control") }}
+
+        {{ cam_form.day.label(class="form-label") }}
+        {{ cam_form.day(class="form-control") }}
+
+        {{ cam_form.start_time.label(class="form-label") }}
+        {{ cam_form.start_time(class="form-control") }}
+
+        {{ cam_form.stop_time.label(class="form-label") }}
+        {{ cam_form.stop_time(class="form-control") }}
+        <br/>
+        {{ cam_form.submit(class="btn btn-secondary") }}
+    </form>
+</div>
+
+{% endblock %}

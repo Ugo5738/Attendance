@@ -86,6 +86,13 @@ date = now.strftime('%d-%B-%Y')
 day = now.strftime('%A')
 hour = now.strftime('%H')
 
+
+CAM_START = False
+if day == os.environ.get("CHURCH_DAY", ""):
+    if today.hour in range(int(os.environ.get("CHURCH_START_TIME", "")),
+                           int(os.environ.get("CHURCH_STOP_TIME", ""))):
+        CAM_START = True
+
 for image_class in imageList:
     currentImg = cv2.imread(f"{path}/{image_class}")
     images.append(currentImg)
@@ -168,60 +175,61 @@ encode_list_for_known_faces = get_encodings(images)
 
 
 def show_vid():
-    url = [os.environ["CAM_URL"], os.environ["CAM_URL2"]]
+    if CAM_START:
+        url = [os.environ["CAM_URL"], os.environ["CAM_URL2"]]
 
-    while True:
-        # capture frame by frame
-        # success, img = video_capture.read()
-        # if not success:
-        #     break
+        while True:
+            # capture frame by frame
+            # success, img = video_capture.read()
+            # if not success:
+            #     break
 
-        # if using the phone webcam
-        img_resp = rq.urlopen(url[0])
-        img_np = np.array(bytearray(img_resp.read()), dtype=np.uint8)
-        img = cv2.imdecode(img_np, -1)
-        print(img)
+            # if using the phone webcam
+            img_resp = rq.urlopen(url[0])
+            img_np = np.array(bytearray(img_resp.read()), dtype=np.uint8)
+            img = cv2.imdecode(img_np, -1)
+            print(img)
 
-        # to resize output
-        # width = int(cap.get(3))
-        # height = int(cap.get(4))
-        # cv2.resize(img, (0, 0), fx=0.5, fx=0.5)
+            # to resize output
+            # width = int(cap.get(3))
+            # height = int(cap.get(4))
+            # cv2.resize(img, (0, 0), fx=0.5, fx=0.5)
 
-        # resize frame for use
-        img_small = cv2.resize(img, (0, 0), None, 0.25, 0.25)
-        img_small = cv2.cvtColor(img_small, cv2.COLOR_BGR2RGB)
-        # cv2.imshow('image_small', img_small)
+            # resize frame for use
+            img_small = cv2.resize(img, (0, 0), None, 0.25, 0.25)
+            img_small = cv2.cvtColor(img_small, cv2.COLOR_BGR2RGB)
+            # cv2.imshow('image_small', img_small)
 
-        face_locations = face_recognition.face_locations(img_small)
-        encoded_faces = face_recognition.face_encodings(img_small, face_locations)
+            face_locations = face_recognition.face_locations(img_small)
+            encoded_faces = face_recognition.face_encodings(img_small, face_locations)
 
-        # for encodeFace, faceLoc in zip(encoded_faces, face_locations): # you can use an enumerate here
-        for ind, (encodeFace, faceLoc) in enumerate(zip(encoded_faces, face_locations)):
-            matches = face_recognition.compare_faces(encode_list_for_known_faces, encodeFace)
-            name = "New member recognized"
-            face_dist = face_recognition.face_distance(encode_list_for_known_faces, encodeFace)
-            # print(face_dist)
-            match_index = np.argmin(face_dist)
-            print("match_index gotten", match_index)
+            # for encodeFace, faceLoc in zip(encoded_faces, face_locations): # you can use an enumerate here
+            for ind, (encodeFace, faceLoc) in enumerate(zip(encoded_faces, face_locations)):
+                matches = face_recognition.compare_faces(encode_list_for_known_faces, encodeFace)
+                name = "New member recognized"
+                face_dist = face_recognition.face_distance(encode_list_for_known_faces, encodeFace)
+                # print(face_dist)
+                match_index = np.argmin(face_dist)
+                print("match_index gotten", match_index)
 
-            # display bounding box and name on image
-            if matches[match_index]:
-                name = classNames[match_index].upper()
-            y1, x2, y2, x1 = faceLoc
-            y1, x2, y2, x1 = y1*4, x2*4, y2*4, x1*4
-            cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            cv2.rectangle(img, (x1, y2-35), (x2, y2), (0, 255, 0), cv2.FILLED)
-            cv2.putText(img, name, (x1+6, y2-6), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
-            mark_attendance.mark_present(name)
-            # else:
-            #     mark_attendance(name)
+                # display bounding box and name on image
+                if matches[match_index]:
+                    name = classNames[match_index].upper()
+                y1, x2, y2, x1 = faceLoc
+                y1, x2, y2, x1 = y1*4, x2*4, y2*4, x1*4
+                cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                cv2.rectangle(img, (x1, y2-35), (x2, y2), (0, 255, 0), cv2.FILLED)
+                cv2.putText(img, name, (x1+6, y2-6), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
+                mark_attendance.mark_present(name)
+                # else:
+                #     mark_attendance(name)
 
-        # cv2.imshow("video", img)
+            # cv2.imshow("video", img)
 
-        ret, buffer = cv2.imencode('.jpg', img)
-        frame = buffer.tobytes()
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+            ret, buffer = cv2.imencode('.jpg', img)
+            frame = buffer.tobytes()
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 
 # FORM.PY CONTENTS
@@ -246,7 +254,6 @@ class RegisterForm(FlaskForm):
     phone = TelField('Phone: ', validators=[DataRequired()])
     country = SelectField('Country: ', validators=[DataRequired()], choices=COUNTRY_CHOICES)
     # others = TextAreaField('Others: ')
-    # image = FileField("Image:", validators=[DataRequired()])
     submit = SubmitField("Submit")
 
     def validate_phone(self, phone):
@@ -260,7 +267,7 @@ class RegisterForm(FlaskForm):
 
 # Create an Admin Registration Form Class
 class AdminRegisterForm(FlaskForm):
-    title = StringField("Title:", validators=[DataRequired()])
+    title = SelectField('Title:', validators=[DataRequired()], choices=TITLE_CHOICES)
     username = StringField("Username:", validators=[DataRequired()])
     first_name = StringField("First name:", validators=[DataRequired()])
     middle_name = StringField("Middle name:", validators=[DataRequired()])
@@ -277,6 +284,16 @@ class LoginForm(FlaskForm):
     username = StringField("Username:", validators=[DataRequired()])
     password_hash = PasswordField("Password", validators=[DataRequired()])
     submit = SubmitField("Submit")
+
+
+# Create a Cam Form Class
+class CamForm(FlaskForm):
+    ip = SelectField('Ip:', validators=[DataRequired()])
+    port = StringField("Port:")
+    day = StringField("Day:")
+    start_time = StringField("Start time:")
+    stop_time = StringField("Stop time:", validators=[DataRequired()])
+    submit = SubmitField("Turn On")
 
 
 # APP.PY CONTENT
@@ -368,6 +385,31 @@ def index():
 @app.route('/video_feed')
 def video_feed():
     return Response(show_vid(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route('/cam', methods=["GET", "POST"])
+def cam():
+    cam_form = CamForm()
+    if request.method == "POST":
+        if cam_form.validate_on_submit():
+            ip = cam_form.ip.data
+            port_ = cam_form.port.data
+            day_ = cam_form.day.data
+            start_time = cam_form.start_time.data
+            stop_time = cam_form.stop_time.data
+            if not port_:
+                port_ = "8080"
+            if not start_time:
+                start_time = hour
+            if not day_:
+                day_ = day
+            cam_url = f"http://{ip}:{port_}/shot.jpg"
+            os.environ["CAM_URL"] = cam_url
+            os.environ["CHURCH_DAY"] = day_
+            os.environ["CHURCH_START_TIME"] = start_time
+            os.environ["CHURCH_STOP_TIME"] = stop_time
+            return redirect(url_for('index'))
+    return render_template("cam.html", cam_form=cam_form)
 
 
 @app.route('/files')
