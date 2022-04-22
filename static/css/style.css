@@ -1,10 +1,22 @@
 h1 {
-    color: darkblue;
+    color: royalblue;
     font-size: 60px;
+}
+
+h3 {
+    color: #696969;
 }
 
 body {
     background: #f4f4f4;
+}
+
+div.home_container {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    align-items: center;
+    height: 700px;
 }
 
 // input[type=checkbox] {

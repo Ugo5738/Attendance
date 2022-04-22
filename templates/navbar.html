@@ -1,6 +1,6 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #4169E1;">
   <div class="container-fluid">
-    <a class="navbar-brand" href="{{ url_for('home') }}">Recog</a>
+    <a class="navbar-brand" href="{{ url_for('home') }}">Recogg</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -26,14 +26,16 @@
             <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
           </li>
         {% else %}
-          <li class="nav-item">
+        </ul>
+        <ul class="navbar-nav me mb-2 mb-lg-0">
+          <li class="nav-item d-flex">
             <a class="nav-link" href="{{ url_for('access') }}">Admin Register</a>
           </li>
-          <li class="nav-item">
+          <li class="nav-item d-flex">
             <a class="nav-link" href="{{ url_for('login') }}">Admin Login</a>
           </li>
+        </ul>
         {% endif %}
-      </ul>
     </div>
   </div>
 </nav>
