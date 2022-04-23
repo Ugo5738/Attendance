@@ -29,6 +29,8 @@
                 <td>{{ member.birth_date }}</td>
                 <td>{{ member.phone }}</td>
                 <td>{{ member.country }}</td>
+                <td>{{ member.ext }}</td>
+                <td>{{ member.registration_date | datetimeformat}}</td>
                 <td><a href="{{ url_for('update', id=member.id) }}" class="btn btn-success">UPDATE</a></td>
                 <td><a href="{{ url_for('delete', id=member.id) }}" class="btn btn-danger">DELETE</a></td>
             </tr>

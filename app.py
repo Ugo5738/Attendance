@@ -3,7 +3,7 @@ import os
 import os.path
 from flask import Flask, render_template, request, Response, flash, redirect, url_for
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
-from werkzeug.utils import secure_filename
+# from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
@@ -64,7 +64,8 @@ def file_type(key):
 
 # ATTENDANCE CONTENT
 base_path = Path(__file__).parent
-path = os.path.join(base_path, "Images_upload")
+path = os.path.join(base_path, "static")
+path = os.path.join(path, "recog_images")
 
 images = []
 classNames = []
@@ -352,6 +353,7 @@ class Members(db.Model):
     birth_date = db.Column(db.String(50), nullable=False)
     phone = db.Column(db.String(50), nullable=False)
     country = db.Column(db.String(100), nullable=False)
+    ext = db.Column(db.String(100))
     registration_date = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Create String
@@ -385,7 +387,6 @@ class AdminMembers(db.Model, UserMixin):
 
 @app.route('/home')
 def index():
-
     return render_template('index.html')
 
 
@@ -488,6 +489,7 @@ def register():
 
 
 @app.route("/upload/<int:id>", methods=["GET", "POST"])
+# @app.route("/upload/", methods=["GET", "POST"])
 def upload(id):
     member_image_update = Members.query.get_or_404(id)
     if request.method == 'POST':
@@ -499,57 +501,10 @@ def upload(id):
         my_bucket.Object(file_name).put(Body=file)
         image_path = os.path.join(path, file_name)
         my_bucket.download_file(file_name, image_path)
+        member_image_update.ext = ext.lower()
+        db.session.commit()
         return render_template("uploaded.html", first_name=member_image_update.first_name)
     return render_template("upload.html", first_name=member_image_update.first_name)
-
-
-@app.route("/login", methods=['GET', 'POST'])
-def login():
-    login_form = LoginForm()
-    if login_form.validate_on_submit():
-        username = login_form.username.data
-        password = login_form.password_hash.data
-        admin_username = AdminMembers.query.filter_by(username=username).first()
-        if admin_username:
-            if check_password_hash(admin_username.password_hash, password):
-                login_user(admin_username)
-                flash("Login Successful")
-                return redirect(url_for('dashboard'))
-            else:
-                flash("Wrong Password, Try Again")
-        else:
-            flash("That User doesn't exist, Try Again")
-    return render_template('login.html',
-                           login_form=login_form)
-
-
-@app.route("/logout", methods=['GET', 'POST'])
-@login_required
-def logout():
-    logout_user()
-    flash("You have been logged out!")
-    return redirect(url_for('login'))
-
-
-@app.route("/dashboard", methods=['GET', 'POST'])
-@login_required
-def dashboard():
-    return render_template('dashboard.html')
-
-
-def success():
-    return render_template("success.html")
-
-
-@app.route('/')
-def home():
-    return render_template("home.html")
-
-
-@app.route('/database')
-def database():
-    all_members = Members.query.order_by(Members.registration_date)
-    return render_template("database.html", all_members=all_members)
 
 
 @app.route('/update/<int:id>', methods=['GET', 'POST'])
@@ -588,6 +543,55 @@ def delete(id):
         flash("There was a problem deleting that record, please try again!")
         all_members = Members.query.order_by(Members.registration_date)
         return render_template("database.html", all_members=all_members)
+
+
+@app.route("/login", methods=['GET', 'POST'])
+def login():
+    login_form = LoginForm()
+    if login_form.validate_on_submit():
+        username = login_form.username.data
+        password = login_form.password_hash.data
+        admin_username = AdminMembers.query.filter_by(username=username).first()
+        if admin_username:
+            if check_password_hash(admin_username.password_hash, password):
+                login_user(admin_username)
+                flash("Login Successful")
+                return redirect(url_for('dashboard'))
+            else:
+                flash("Wrong Password, Try Again")
+        else:
+            flash("That User doesn't exist, Try Again")
+    return render_template('login.html',
+                           login_form=login_form)
+
+
+@app.route("/logout", methods=['GET', 'POST'])
+@login_required
+def logout():
+    logout_user()
+    flash("You have been logged out!")
+    return redirect(url_for('home'))
+
+
+@app.route("/dashboard", methods=['GET', 'POST'])
+@login_required
+def dashboard():
+    return render_template('dashboard.html')
+
+
+def success():
+    return render_template("success.html")
+
+
+@app.route('/')
+def home():
+    return render_template("home.html")
+
+
+@app.route('/database')
+def database():
+    all_members = Members.query.order_by(Members.registration_date)
+    return render_template("database.html", all_members=all_members)
 
 
 @app.route('/admin_database')
@@ -631,7 +635,10 @@ def attendance():
 @app.route('/member/<id>')
 def member(id):
     member_data = Members.query.get_or_404(id)
-    return render_template("member.html", member_data=member_data)
+    file_name = f"{member_data.first_name} {member_data.middle_name} {member_data.last_name}.{member_data.ext}"
+    image_dir = 'recog_images/'
+    image_path = os.path.join(image_dir, file_name)
+    return render_template("member.html", member_data=member_data, image_path=image_path)
 
 
 # invalid URL
