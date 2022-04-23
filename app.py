@@ -15,7 +15,7 @@ from uuid import uuid1
 import base64
 import boto3
 from dotenv import load_dotenv
-
+from flask_debugtoolbar import DebugToolbarExtension
 
 # FORM.PY MODULES
 from flask_wtf import FlaskForm, RecaptchaField
@@ -311,7 +311,9 @@ session = boto3.Session(
 
 
 app = Flask(__name__)
+# Mobility(app)
 app.config.from_pyfile('config.py')
+# toolbar = DebugToolbarExtension(app)
 app.jinja_env.filters['datetimeformat'] = datetimeformat
 app.jinja_env.filters['file_type'] = file_type
 
@@ -489,7 +491,6 @@ def register():
 
 
 @app.route("/upload/<int:id>", methods=["GET", "POST"])
-# @app.route("/upload/", methods=["GET", "POST"])
 def upload(id):
     member_image_update = Members.query.get_or_404(id)
     if request.method == 'POST':
@@ -561,8 +562,7 @@ def login():
                 flash("Wrong Password, Try Again")
         else:
             flash("That User doesn't exist, Try Again")
-    return render_template('login.html',
-                           login_form=login_form)
+    return render_template("login.html", login_form=login_form)
 
 
 @app.route("/logout", methods=['GET', 'POST'])
