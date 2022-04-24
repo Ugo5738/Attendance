@@ -234,7 +234,16 @@ def show_vid():
 
 
 # FORM.PY CONTENTS
-COUNTRY_CHOICES = [("", "--Select an option--")]+[(country.name, country.name) for country in pycountry.countries]
+temp_country_dict = {}
+for country in pycountry.countries:
+    temp_country_dict[country.name] = country.alpha_2
+
+country_dict = {}
+for i in sorted(temp_country_dict):
+    country_dict[i] = temp_country_dict[i]
+
+countries = list(country_dict.keys())
+COUNTRY_CHOICES = [("", "--Select an option--")]+[(country, country) for country in countries]
 GENDER_CHOICES = [("", "--Select an option--"), ('Male', 'Male'), ('Female', 'Female')]
 TITLE_CHOICES = [("", "--Select an option--"), ('Brother', 'Brother'), ('Sister', 'Sister'), ('Pastor', 'Pastor'),
                  ('Bible study', 'Bible study'), ('Teacher', 'Teacher'), ('Cell leader', 'Cell leader')]
@@ -258,6 +267,10 @@ class RegisterForm(FlaskForm):
     submit = SubmitField("Submit")
 
     def validate_phone(self, phone):
+        # phone_number = phone.data
+        # if phone_number.startswith('0'):
+        #     parse_num = phonenumbers.parse(phone_number, country_dict[self.coun.capitalize()])
+        #     phone_number = phonenumbers.format_number(parse_num, phonenumbers.PhoneNumberFormat.E164)
         try:
             p = phonenumbers.parse(phone.data)
             if not phonenumbers.is_valid_number(p):
@@ -462,16 +475,39 @@ def admin_register():
     return render_template('admin_register.html', admin_form=admin_form)
 
 
+@app.route('/test', methods=['GET', 'POST'])
+def test():
+    member_form = RegisterForm()
+    if request.method == 'POST':
+        if member_form.validate_on_submit():
+            return render_template("home.html")
+        return render_template("registered.html")
+    return render_template("register.html", member_form=member_form)
+
+
+@app.route('/device', methods=['GET', 'POST'])
+def device():
+    return render_template('device.html')
+
+
+@app.route('/mobile', methods=['Get', 'POST'])
+def mobile():
+    return render_template('mobile.html')
+
+
 # Registration page
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     member_form = RegisterForm()
     if request.method == 'POST':
+        print("posting")
         if member_form.validate_on_submit():
+            print("valid")
             email = member_form.email.data
             checked_email = Members.query.filter_by(email=email).first()
             first_name = member_form.first_name.data
             if checked_email is None:
+                print("adding")
                 reg_member = Members(title=member_form.title.data,
                                      first_name=member_form.first_name.data,
                                      middle_name=member_form.middle_name.data,
@@ -557,7 +593,8 @@ def login():
             if check_password_hash(admin_username.password_hash, password):
                 login_user(admin_username)
                 flash("Login Successful")
-                return redirect(url_for('dashboard'))
+                # return redirect(url_for('dashboard'))
+                return render_template("dashboard")
             else:
                 flash("Wrong Password, Try Again")
         else:
