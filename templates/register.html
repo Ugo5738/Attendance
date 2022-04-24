@@ -33,12 +33,14 @@
         {{ member_form.birth_date.label(class="form-label") }}
         {{ member_form.birth_date(class="form-control") }}
 
-        {{ member_form.phone.label(class="form-label") }}
-        {{ member_form.phone(class="form-control") }}
-
         {{ member_form.country.label(class="form-label") }}
         {{ member_form.country(class="form-control") }}
-        <br/>
+
+        {{ member_form.phone.label(class="form-label") }}
+        {{ member_form.phone(class="form-control") }}
+        <p style="color:grey">Please include your country code in this format: +2347034598348</p>
+
+        <br>
         {{ member_form.submit(class="btn btn-secondary") }}
     </form>
 </div>
