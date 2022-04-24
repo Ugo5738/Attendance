@@ -475,16 +475,6 @@ def admin_register():
     return render_template('admin_register.html', admin_form=admin_form)
 
 
-@app.route('/test', methods=['GET', 'POST'])
-def test():
-    member_form = RegisterForm()
-    if request.method == 'POST':
-        if member_form.validate_on_submit():
-            return render_template("home.html")
-        return render_template("registered.html")
-    return render_template("register.html", member_form=member_form)
-
-
 @app.route('/device', methods=['GET', 'POST'])
 def device():
     return render_template('device.html')
@@ -593,7 +583,6 @@ def login():
             if check_password_hash(admin_username.password_hash, password):
                 login_user(admin_username)
                 flash("Login Successful")
-                # return redirect(url_for('dashboard'))
                 return render_template("dashboard")
             else:
                 flash("Wrong Password, Try Again")
