@@ -3,6 +3,11 @@ h1 {
     font-size: 50px;
 }
 
+h2 {
+    color: royalblue;
+    font-size: 25px;
+}
+
 h3 {
     color: #696969;
 }
@@ -16,5 +21,5 @@ div.home_container {
     justify-content: center;
     text-align: center;
     align-items: center;
-    height: 650px;
+    height: 550px;
 }

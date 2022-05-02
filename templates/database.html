@@ -2,6 +2,7 @@
 
 {% block content %}
 <h1>Database</h1>
+<div class="container" >
     <table class="table table-hover table-bordered table-striped">
         <tr>
             <th>ID</th>
@@ -15,28 +16,55 @@
             <th>Birth Date</th>
             <th>Phone</th>
             <th>Country</th>
+            <th>Image name</th>
+            <th>Image Mimetype</th>
+            <th>Organization</th>
+            <th>Registered</th>
         </tr>
-        {% for member in all_members %}
-            <tr>
-                <td>{{ member.id }}</td>
-                <td>{{ member.title }}</td>
-                <td><a href="{{ url_for('member', id=member.id) }}">{{ member.first_name }}</a></td>
-                <td>{{ member.middle_name }}</td>
-                <td>{{ member.last_name }}</td>
-                <td>{{ member.address }}</td>
-                <td>{{ member.email }}</td>
-                <td>{{ member.gender }}</td>
-                <td>{{ member.birth_date }}</td>
-                <td>{{ member.phone }}</td>
-                <td>{{ member.country }}</td>
-                <td>{{ member.ext }}</td>
-                <td>{{ member.registration_date | datetimeformat}}</td>
-                <td><a href="{{ url_for('update', id=member.id) }}" class="btn btn-success">UPDATE</a></td>
-                <td><a href="{{ url_for('delete', id=member.id) }}" class="btn btn-danger">DELETE</a></td>
-            </tr>
-        {% endfor %}
-        {% for image in images%}
-            <li><img src="data:image/png;base64,{{image}}"></li>
-        {%endfor%}
+        {% if current_user.is_authenticated %}
+            {% for member in all_members %}
+                <tr>
+                    <td>{{ member.id }}</td>
+                    <td>{{ member.title }}</td>
+                    <td><a href="{{ url_for('member', id=member.id) }}">{{ member.first_name }}</a></td>
+                    <td>{{ member.middle_name }}</td>
+                    <td>{{ member.last_name }}</td>
+                    <td>{{ member.address }}</td>
+                    <td>{{ member.email }}</td>
+                    <td>{{ member.gender }}</td>
+                    <td>{{ member.birth_date }}</td>
+                    <td>{{ member.phone }}</td>
+                    <td>{{ member.country }}</td>
+                    <td>{{ member.img_name }}</td>
+                    <td>{{ member.mimetype }}</td>
+                    <td>{{ member.organization.org_name }}</td>
+                    <td>{{ member.registration_date | datetimeformat}}</td>
+                    <td><a href="{{ url_for('update', id=member.id) }}" class="btn btn-success">UPDATE</a></td>
+                    <td><a href="{{ url_for('delete', id=member.id) }}" class="btn btn-danger">DELETE</a></td>
+                </tr>
+            {% endfor %}
+        {% else %}
+            {% for member in all_members %}
+                <tr>
+                    <td>{{ member.id }}</td>
+                    <td>{{ member.title }}</td>
+                    <td>{{ member.first_name }}</a></td>
+                    <td>{{ member.middle_name }}</td>
+                    <td>{{ member.last_name }}</td>
+                    <td>{{ member.address }}</td>
+                    <td>{{ member.email }}</td>
+                    <td>{{ member.gender }}</td>
+                    <td>{{ member.birth_date }}</td>
+                    <td>{{ member.phone }}</td>
+                    <td>{{ member.country }}</td>
+                    <td>{{ member.img_name }}</td>
+                    <td>{{ member.mimetype }}</td>
+                    <td>{{ member.organization.org_name }}</td>
+                    <td>{{ member.registration_date | datetimeformat}}</td>
+                    <td><a href="{{ url_for('update', id=member.id) }}" class="btn btn-success">UPDATE</a></td>
+                </tr>
+            {% endfor %}
+        {% endif %}
     </table>
+</div>
 {% endblock %}

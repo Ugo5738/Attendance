@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Organization Database</h1>
+    <table class="table table-hover table-bordered table-striped">
+        <tr>
+            <th>ID</th>
+            <th>Organization Name</th>
+            <th>Organization Type</th>
+            <th>Email</th>
+            <th>Organization Token</th>
+            <th>Admin Token</th>
+            <th>Member Token</th>
+            <th>Admins</th>
+            <th>Members</th>
+        </tr>
+        {% for organization in organizations %}
+            <tr>
+                <td>{{ organization.id }}</td>
+                <td>{{ organization.org_name }}</td>
+                <td>{{ organization.org_type }}</td>
+                <td>{{ organization.email }}</td>
+                <td>{{ organization.org_token }}</td>
+                <td>{{ organization.ad_token }}</td>
+                <td>{{ organization.mem_token }}</td>
+                <td>{{ organization.admin_members }}</td>
+                <td>{{ organization.members }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

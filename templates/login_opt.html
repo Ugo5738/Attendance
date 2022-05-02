@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="home_container">
+    <div class="content">
+    <h2 style="text-align: center;">Nice to have you back, please select to login as an admin or as an organization</h2>
+        <br>
+    <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">Organization Login</a>
+    <a href="{{ url_for('ad_login') }}" class="btn btn-outline-primary btn-lg">Admin Login</a>
+    </div>
+</div>
+
+{% endblock %}

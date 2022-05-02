@@ -3,14 +3,14 @@
 {% block content %}
 
 <div class="shadow p-3 mb-5 bg-body rounded">
-    <h3>Please provide the access key</h3>
+    <h3>Please provide your Admin Access Token and ensure that you only input this token when you are done taking attendance and not before.</h3>
     <br/>
     <form method="POST" enctype="multipart/form-data">
         {{ access_form.hidden_tag() }}
 
 
-        {{ access_form.access_key.label(class="form-label") }}
-        {{ access_form.access_key(class="form-control") }}
+        {{ access_form.access_token.label(class="form-label") }}
+        {{ access_form.access_token(class="form-control") }}
         <br/>
         {{ access_form.submit(class="btn btn-secondary") }}
     </form>

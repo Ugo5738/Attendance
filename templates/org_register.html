@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="shadow p-3 mb-5 bg-body rounded">
+    <h3>Tell us about your organization</h3>
+    <br/>
+    <form method="POST" enctype="multipart/form-data">
+        {{ org_form.hidden_tag() }}
+
+
+        {{ org_form.org_name.label(class="form-label") }}
+        {{ org_form.org_name(class="form-control") }}
+
+        {{ org_form.org_type.label(class="form-label") }}
+        {{ org_form.org_type(class="form-control") }}
+
+        {{ org_form.org_username.label(class="form-label") }}
+        {{ org_form.org_username(class="form-control") }}
+
+        {{ org_form.email.label(class="form-label") }}
+        {{ org_form.email(class="form-control") }}
+
+        {{ org_form.password_hash.label(class="form-label") }}
+        {{ org_form.password_hash(class="form-control") }}
+
+        {{ org_form.password_hash2.label(class="form-label") }}
+        {{ org_form.password_hash2(class="form-control") }}
+        <br>
+        {{ org_form.submit(class="btn btn-secondary") }}
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% for message in get_flashed_messages() %}
+    {{ message }}
+{% endfor %}
+
+<div class="shadow p-3 mb-5 bg-body rounded">
+    <h3>Please provide the following details to login</h3>
+    <br/>
+    <form method="POST" enctype="multipart/form-data">
+        {{ ad_login_form.hidden_tag() }}
+
+        {{ ad_login_form.username.label(class="form-label") }}
+        {{ ad_login_form.username(class="form-control") }}
+
+        {{ ad_login_form.password.label(class="form-label") }}
+        {{ ad_login_form.password(class="form-control") }}
+
+        {{ ad_login_form.admin_token.label(class="form-label") }}
+        {{ ad_login_form.admin_token(class="form-control") }}
+        <br/>
+        {{ ad_login_form.submit(class="btn btn-secondary") }}
+    </form>
+</div>
+
+{% endblock %}

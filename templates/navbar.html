@@ -8,19 +8,19 @@
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         {% if current_user.is_authenticated %}
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('cam') }}">Cam</a>
+            <a class="nav-link" href="{{ url_for('cam', token=current_user.org_token) }}">Cam</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('attendance') }}">Attendance</a>
+            <a class="nav-link" href="{{ url_for('attendance', token=current_user.org_token) }}">Attendance</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('database') }}">Database</a>
+            <a class="nav-link" href="{{ url_for('database', token=current_user.org_token) }}">Database</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('admin_database') }}">Admin Database</a>
+            <a class="nav-link" href="{{ url_for('admin_database', token=current_user.org_token) }}">Admin Database</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('files') }}">Images</a>
@@ -34,10 +34,7 @@
         </ul>
         <ul class="navbar-nav me mb-2 mb-lg-0">
           <li class="nav-item d-flex">
-            <a class="nav-link" href="{{ url_for('access') }}">Admin Register</a>
-          </li>
-          <li class="nav-item d-flex">
-            <a class="nav-link" href="{{ url_for('login') }}">Admin Login</a>
+            <a class="nav-link" href="{{ url_for('login_opt') }}">Login</a>
           </li>
         </ul>
         {% endif %}
