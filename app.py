@@ -11,6 +11,8 @@ from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_mail import Mail, Message
+import io
+from PIL import Image
 # from .forms import LoginForm, RegisterForm, AdminRegisterForm
 # from .attendance import show_vid, attendance_db
 # from filters import datetimeformat
@@ -241,8 +243,8 @@ def show_vid():
 
 
 def delete_files(path, org_id):
-    files = [file for file in os.listdir(path) if file.split('.')[0].split()[-1] == org_id]
-    [os.remove(os.path.join(path, f)) for f in files]
+    images_to_del = [file for file in os.listdir(path) if file.split('.')[0].split()[-1] == str(org_id)]
+    [os.remove(os.path.join(path, f)) for f in images_to_del]
 
 
 # FORM.PY CONTENTS
@@ -260,10 +262,6 @@ GENDER_CHOICES = [("", "--Select an option--"), ('Male', 'Male'), ('Female', 'Fe
 TITLE_CHOICES = [("", "--Select an option--"), ('Brother', 'Brother'), ('Sister', 'Sister'), ('Pastor', 'Pastor'),
                  ('Bible study', 'Bible study'), ('Teacher', 'Teacher'), ('Cell leader', 'Cell leader')]
 ORGANIZATION_TYPE = [("", "--Select an option--"), ('Church', 'Church'), ('School', 'School'), ('Office', 'Office')]
-
-
-class InstitutionForm(FlaskForm):
-    institution_name = StringField("Institution name: ", validators=[DataRequired()])
 
 
 # Create an Organization Form Class
@@ -339,9 +337,9 @@ class CamForm(FlaskForm):
 
 
 # Create access form
-class AccessForm(FlaskForm):
-    access_token = StringField("Access Token:", validators=[DataRequired()])
-    submit = SubmitField("Submit")
+# class AccessForm(FlaskForm):
+#     access_token = StringField("Access Token:", validators=[DataRequired()])
+#     submit = SubmitField("Submit")
 
 
 class AdLoginForm(FlaskForm):
@@ -359,7 +357,6 @@ session = boto3.Session(
 
 
 app = Flask(__name__)
-# Mobility(app)
 app.config.from_pyfile('config.py')
 app.jinja_env.filters['datetimeformat'] = datetimeformat
 app.jinja_env.filters['file_type'] = file_type
@@ -415,6 +412,7 @@ class Organization(db.Model, UserMixin):
     members = db.relationship('Member', backref='organization')
     admin_members = db.relationship('AdminMember', backref='organization')
     attendance = db.relationship('Attendance', backref='organization')
+    cam = db.relationship('Cam', backref='organization')
     registration_date = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Create String
@@ -433,6 +431,16 @@ class Organization(db.Model, UserMixin):
         return check_password_hash(self.password_hash, password)
 
 
+# Create Cam model to monitor usage of the camera
+class Cam(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    org_name = db.Column(db.String(50), nullable=False)
+    start_time = db.Column(db.Integer(), nullable=False)
+    stop_time = db.Column(db.Integer(), nullable=False)
+    registration_date = db.Column(db.DateTime, default=datetime.utcnow)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
+
+
 # Create Model
 class Member(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -448,7 +456,7 @@ class Member(db.Model):
     country = db.Column(db.String(100), nullable=False)
     ext = db.Column(db.String(100))
     img_name = db.Column(db.Text, nullable=False)
-    img = db.Column(db.Text, nullable=False)
+    img = db.Column(db.LargeBinary, nullable=False)
     mimetype = db.Column(db.Text, nullable=False)
     registration_date = db.Column(db.DateTime, default=datetime.utcnow)
     organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
@@ -517,12 +525,13 @@ def video_feed():
 def cam(token):
     cam_form = CamForm()
     if request.method == "POST":
+        cam_form.token.data = token
         if cam_form.validate_on_submit():
             ip = cam_form.ip.data
             port_ = cam_form.port.data
             day_ = cam_form.day.data
-            start_time = cam_form.start_time.data
-            stop_time = cam_form.stop_time.data
+            start_time = int(cam_form.start_time.data)
+            stop_time = int(cam_form.stop_time.data)
             duration = (stop_time - start_time) * 3600
             if not port_:
                 port_ = "8080"
@@ -531,37 +540,47 @@ def cam(token):
             if not day_:
                 day_ = day
             cam_url = f"http://{ip}:{port_}/shot.jpg"
-            os.environ["CAM_URL"] = cam_url
-            os.environ["CHURCH_DAY"] = day_
-            os.environ["CHURCH_START_TIME"] = start_time
-            os.environ["CHURCH_STOP_TIME"] = stop_time
+            os.environ.get("CAM_URL", cam_url)
+            os.environ.get("CHURCH_DAY", day_)
+            os.environ.get("CHURCH_START_TIME", start_time)
+            os.environ.get("CHURCH_STOP_TIME", stop_time)
             if Organization.query.filter_by(org_token=token).first():
                 org_id = Organization.query.filter_by(org_token=token).first().id
+                org_name = Organization.query.filter_by(org_token=token).first().org_name
                 org_members_set = Organization.query.filter_by(org_token=token).first().members
                 img_name_list = [mem.img_name for mem in org_members_set]
                 img_list = [mem.img for mem in org_members_set]
                 img_dict = dict(zip(img_name_list, img_list))
                 for img_name, img in img_dict.items():
-                    file_path = os.path.join(path, img_name)
-                    encoded_string = base64.b64encode(img)
-                    with open(file_path, "wb") as new_file:
-                        new_file.write(base64.decodebytes(encoded_string))
+                    file_name = os.path.join(path, img_name)
+                    binary_data = base64.b64decode(img)
+                    # Convert the bytes into a PIL image
+                    image = Image.open(io.BytesIO(binary_data))
+                    image.save(file_name)
                 t = Timer(duration, delete_files, [path, org_id])
                 t.start()
+                cam_use = Cam(org_name=org_name, start_time=start_time, stop_time=stop_time, organization_id=org_id)
+                db.session.add(cam_use)
+                db.session.commit()
                 return redirect(url_for('index', token=token))
             elif Organization.query.filter_by(ad_token=token).first():
                 org_id = Organization.query.filter_by(ad_token=token).first().id
+                org_name = Organization.query.filter_by(ad_token=token).first().org_name
                 ad_members_set = Organization.query.filter_by(ad_token=token).first().members
                 img_name_list = [mem.img_name for mem in ad_members_set]
                 img_list = [mem.img for mem in ad_members_set]
                 img_dict = dict(zip(img_name_list, img_list))
                 for img_name, img in img_dict.items():
-                    file_path = os.path.join(path, img_name)
-                    encoded_string = base64.b64encode(img)
-                    with open(file_path, "wb") as new_file:
-                        new_file.write(base64.decodebytes(encoded_string))
+                    file_name = os.path.join(path, img_name)
+                    binary_data = base64.b64decode(img)
+                    # Convert the bytes into a PIL image
+                    image = Image.open(io.BytesIO(binary_data))
+                    image.save(file_name)
                 t = Timer(duration, delete_files, [path, org_id])
                 t.start()
+                cam_use = Cam(org_name=org_name, start_time=start_time, stop_time=stop_time, organization_id=org_id)
+                db.session.add(cam_use)
+                db.session.commit()
                 return redirect(url_for('index', token=token))
     return render_template("cam.html", cam_form=cam_form)
 
@@ -611,16 +630,17 @@ def files():
     return render_template("imageDB.html", my_bucket=my_bucket, files=summaries)
 
 
-@app.route("/access", methods=["POST", "GET"])
-def access():
-    access_form = AccessForm()
-    if request.method == 'POST':
-        if access_form.validate_on_submit():
-            token = access_form.access_token.data
-            token_id = Organization.query.filter_by(ad_token=token).first().id
-            if token_id:
-                return redirect(url_for("attendance", token=token))
-    return render_template('access.html', access_form=access_form)
+# I DON'T THINK THIS IS USED ANYWHERE
+# @app.route("/access", methods=["POST", "GET"])
+# def access():
+#     access_form = AccessForm()
+#     if request.method == 'POST':
+#         if access_form.validate_on_submit():
+#         token = access_form.access_token.data
+#             token_id = Organization.query.filter_by(ad_token=token).first().id
+#             if token_id:
+#                 return redirect(url_for("attendance", token=token))
+#     return render_template('access.html', access_form=access_form)
 
 
 # Organization Registration page
@@ -696,10 +716,6 @@ def org_register():
                             "only needs to be a one time process.<br>" \
                             f"{mem_reg_url}" \
                             "<br><br>" \
-                            "However we understand that errors could be made during registration. Please use this " \
-                            "update link to make modifications where necessary<br>" \
-                            f"{'mem_update_url'}" \
-                            "<br><br>" \
                             "Thanks,<br>" \
                             "Recogg Team"
 
@@ -721,7 +737,7 @@ def login_opt():
 
 
 # Admin Login page
-@app.route('/ad-login', methods=['GET', 'POST'])
+@app.route('/ad_login', methods=['GET', 'POST'])
 def ad_login():
     ad_login_form = AdLoginForm()
     if request.method == 'POST':
@@ -781,10 +797,15 @@ def register(mem_token):
             first_name = member_form.first_name.data
             middle_name = member_form.middle_name.data
             last_name = member_form.last_name.data
+            country = member_form.country.data
             pic = request.files['pic']
+            encoded_pic = base64.b64encode(pic.read())
             ext = secure_filename(pic.filename).split('.')[-1]
             mimetype = pic.mimetype
             file_name = f"{first_name} {middle_name} {last_name} {organization_id}.{ext.lower()}"
+            mapping = {country_.name: country_.alpha_2 for country_ in pycountry.countries}.get(country)
+            number = phonenumbers.parse("07033588400", mapping)
+            phone_number = phonenumbers.format_number(number, phonenumbers.PhoneNumberFormat.E164)
             if email not in mem_list:
                 reg_member = Member(title=member_form.title.data,
                                     first_name=member_form.first_name.data,
@@ -797,7 +818,7 @@ def register(mem_token):
                                     phone=member_form.phone.data,
                                     country=member_form.country.data,
                                     img_name=file_name,
-                                    img=pic.read(),
+                                    img=encoded_pic,
                                     mimetype=mimetype,
                                     organization_id=organization_id)
                 db.session.add(reg_member)

@@ -4,22 +4,22 @@
 
 <div class="shadow p-3 mb-5 bg-body rounded">
     <h3>Dashboard</h3>
-    <h1>Welcome {{ current_user.first_name }}!</h1>
+    <h1>Welcome {{ current_user.org_name }}!</h1>
     <div class="card" style="width: 18rem;">
         <img src="{{ url_for('static', filename='default/default1.png') }}" class="card-img-top" alt="...">
         <div class="card-body">
             <h5 class="card-title">{{ current_user.username }}</h5>
-            <p class="card-text">Excellent member</p>
+            <p class="card-text">Excellent Organization</p>
         </div>
         <ul class="list-group list-group-flush">
-            <li class="list-group-item"><strong>ID:</strong> {{ current_user.id }}</li>
-            <li class="list-group-item"><strong>Title:</strong> {{ current_user.title }}</li>
-            <li class="list-group-item"><strong>Username:</strong> {{ current_user.username }}</li>
-            <li class="list-group-item"><strong>First Name:</strong> {{ current_user.first_name }}</li>
-            <li class="list-group-item"><strong>Middle Name:</strong> {{ current_user.middle_name }}</li>
-            <li class="list-group-item"><strong>Last Name:</strong> {{ current_user.last_name }}</li>
+            <li class="list-group-item"><strong>Organization ID:</strong> {{ current_user.id }}</li>
+            <!--<li class="list-group-item"><strong>Title:</strong> {{ current_user.title }}</li>-->
+            <li class="list-group-item"><strong>Organization Type:</strong> {{ current_user.org_type }}</li>
+            <li class="list-group-item"><strong>Username:</strong> {{ current_user.org_username }}</li>
             <li class="list-group-item"><strong>Email:</strong> {{ current_user.email }}</li>
-            <li class="list-group-item"><strong>Role:</strong> {{ current_user.role }}</li>
+            <li class="list-group-item"><strong>Organization Token:</strong> {{ current_user.org_token }}</li>
+            <li class="list-group-item"><strong>Admin Token:</strong> {{ current_user.ad_token }}</li>
+            <li class="list-group-item"><strong>Member Token:</strong> {{ current_user.mem_token }}</li>
             <li class="list-group-item"><strong>Registration Date:</strong> {{ current_user.registration_date | datetimeformat }}</li>
         </ul>
         <div class="card-body">
