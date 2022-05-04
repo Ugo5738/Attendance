@@ -165,9 +165,7 @@ def attendance_db(id_):
         for row in rows:
             row = row.split(", ")
             row[-1] = row[-1].split()[0]
-            # print(row[3])
             row_list.append(row)
-            # print(row_list)
         return row_list
 
 
@@ -556,7 +554,9 @@ def cam(token):
             day_ = cam_form.day.data
             start_time = cam_form.start_time.data
             stop_time = cam_form.stop_time.data
-            duration = int(stop_time) - int(start_time) * 3600
+            hour_frame = int(stop_time) - int(start_time)
+            time_extend = hour_frame + 48  # after two days the images would be deleted
+            duration = time_extend * 3600  # convert to seconds
             if not port_:
                 port_ = "8080"
             if not start_time:
@@ -583,7 +583,7 @@ def cam(token):
                     image.save(file_name)
                 t = Timer(duration, delete_files, [path, org_id])
                 t.start()
-                cam_use = Cam(org_name=org_name, ip=ip, port=port_, day=day_, start_time=start_time, stop_time=stop_time, organization_id=org_id)
+                cam_use = Cam(org_name=org_name, start_time=start_time, stop_time=stop_time, organization_id=org_id)
                 db.session.add(cam_use)
                 db.session.commit()
                 Tokenizer().set_token()
