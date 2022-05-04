@@ -165,7 +165,9 @@ def attendance_db(id_):
         for row in rows:
             row = row.split(", ")
             row[-1] = row[-1].split()[0]
+            # print(row[3])
             row_list.append(row)
+            # print(row_list)
         return row_list
 
 
@@ -177,6 +179,27 @@ encode_list_for_known_faces = get_encodings(images)
 # video_capture = cv2.VideoCapture(0)
 
 
+tok = []
+
+
+class Tokenizer:
+    def __init__(self):
+        self.org_id = ''
+
+    def set_token(self):
+        token = request.url.split('/')[-1]
+        if Organization.query.filter_by(org_token=token).first():
+            self.org_id = Organization.query.filter_by(org_token=token).first().id
+            tok.append(str(self.org_id))
+        elif Organization.query.filter_by(ad_token=token).first():
+            self.org_id = Organization.query.filter_by(ad_token=token).first().id
+            tok.append(str(self.org_id))
+
+    def get_token(self):
+        self.org_id = ''
+        return tok.pop()
+
+
 def show_vid():
     CAM_START = False
 
@@ -186,6 +209,7 @@ def show_vid():
             CAM_START = True
 
     if CAM_START:
+        org_id = Tokenizer().get_token()
         url = [os.environ["CAM_URL"], os.environ.get("CAM_URL2", "")]
 
         while True:
@@ -216,7 +240,7 @@ def show_vid():
             # for encodeFace, faceLoc in zip(encoded_faces, face_locations): # you can use an enumerate here
             for ind, (encodeFace, faceLoc) in enumerate(zip(encoded_faces, face_locations)):
                 matches = face_recognition.compare_faces(encode_list_for_known_faces, encodeFace)
-                name = "New member recognized"
+                name = f"New member recognized {org_id}"
                 face_dist = face_recognition.face_distance(encode_list_for_known_faces, encodeFace)
                 # print(face_dist)
                 match_index = np.argmin(face_dist)
@@ -530,9 +554,9 @@ def cam(token):
             ip = cam_form.ip.data
             port_ = cam_form.port.data
             day_ = cam_form.day.data
-            start_time = int(cam_form.start_time.data)
-            stop_time = int(cam_form.stop_time.data)
-            duration = (stop_time - start_time) * 3600
+            start_time = cam_form.start_time.data
+            stop_time = cam_form.stop_time.data
+            duration = int(stop_time) - int(start_time) * 3600
             if not port_:
                 port_ = "8080"
             if not start_time:
@@ -540,10 +564,10 @@ def cam(token):
             if not day_:
                 day_ = day
             cam_url = f"http://{ip}:{port_}/shot.jpg"
-            os.environ.get("CAM_URL", cam_url)
-            os.environ.get("CHURCH_DAY", day_)
-            os.environ.get("CHURCH_START_TIME", start_time)
-            os.environ.get("CHURCH_STOP_TIME", stop_time)
+            os.environ["CAM_URL"] = cam_url
+            os.environ["CHURCH_DAY"] = day_
+            os.environ["CHURCH_START_TIME"] = start_time
+            os.environ["CHURCH_STOP_TIME"] = stop_time
             if Organization.query.filter_by(org_token=token).first():
                 org_id = Organization.query.filter_by(org_token=token).first().id
                 org_name = Organization.query.filter_by(org_token=token).first().org_name
@@ -559,9 +583,10 @@ def cam(token):
                     image.save(file_name)
                 t = Timer(duration, delete_files, [path, org_id])
                 t.start()
-                cam_use = Cam(org_name=org_name, start_time=start_time, stop_time=stop_time, organization_id=org_id)
+                cam_use = Cam(org_name=org_name, ip=ip, port=port_, day=day_, start_time=start_time, stop_time=stop_time, organization_id=org_id)
                 db.session.add(cam_use)
                 db.session.commit()
+                Tokenizer().set_token()
                 return redirect(url_for('index', token=token))
             elif Organization.query.filter_by(ad_token=token).first():
                 org_id = Organization.query.filter_by(ad_token=token).first().id
@@ -581,19 +606,21 @@ def cam(token):
                 cam_use = Cam(org_name=org_name, start_time=start_time, stop_time=stop_time, organization_id=org_id)
                 db.session.add(cam_use)
                 db.session.commit()
+                Tokenizer().set_token()
                 return redirect(url_for('index', token=token))
     return render_template("cam.html", cam_form=cam_form)
 
 
 @app.route('/attendance/<token>')
 def attendance(token):
-    # db.session.query(Attendance).delete()
+    db.session.query(Attendance).delete()
+    db.session.commit()
     if Organization.query.filter_by(ad_token=token).first():
         org_id = Organization.query.filter_by(ad_token=token).first().id
         attendance_list = attendance_db(org_id)
         if attendance_list:
             for row in attendance_list:
-                if org_id == row[3]:
+                if str(org_id) == row[3]:
                     member_attendance = Attendance(first_name=row[0],
                                                    middle_name=row[1],
                                                    last_name=row[2],
@@ -603,12 +630,13 @@ def attendance(token):
                                                    organization_id=row[3])
                     db.session.add(member_attendance)
                     db.session.commit()
+        signed_in_members = Organization.query.filter_by(ad_token=token).first().attendance
     if Organization.query.filter_by(org_token=token).first():
         org_id = current_user.id
         attendance_list = attendance_db(org_id)
         if attendance_list:
             for row in attendance_list:
-                if org_id == row[3]:
+                if str(org_id) == row[3]:
                     member_attendance = Attendance(first_name=row[0],
                                                    middle_name=row[1],
                                                    last_name=row[2],
@@ -618,8 +646,15 @@ def attendance(token):
                                                    organization_id=row[3])
                     db.session.add(member_attendance)
                     db.session.commit()
-    signed_in_members = Attendance.query.order_by(Attendance.attendance_date)
+        signed_in_members = Organization.query.filter_by(org_token=token).first().attendance
     return render_template("attendance.html", signed_in_members=signed_in_members)
+
+
+@app.route('/cam_database')
+def cam_database():
+    org_id = current_user.id
+    cam_data = Organization.query.filter_by(id=org_id).first().cam
+    return render_template('cam_database.html', cam_data=cam_data)
 
 
 @app.route('/files')
@@ -828,30 +863,38 @@ def register(mem_token):
     return render_template("register.html", member_form=member_form)
 
 
-@app.route("/upload/<int:id>", methods=["GET", "POST"])
-def upload(id):
-    member_image_update = Member.query.get_or_404(id)
-    if request.method == 'POST':
-        file = request.files['file']
-        ext = file.filename.split('.')[1]
-        file_name = f"{member_image_update.first_name} {member_image_update.middle_name} {member_image_update.last_name}.{ext.lower()}"
-        s3_resource = session.resource('s3')
-        my_bucket = s3_resource.Bucket(os.environ["S3_BUCKET"])
-        my_bucket.Object(file_name).put(Body=file)
-        image_path = os.path.join(path, file_name)
-        my_bucket.download_file(file_name, image_path)
-        member_image_update.ext = ext.lower()
-        db.session.commit()
-        return render_template("uploaded.html", first_name=member_image_update.first_name)
-    return render_template("upload.html", first_name=member_image_update.first_name)
+# @app.route("/upload/<int:id>", methods=["GET", "POST"])
+# def upload(id):
+#     member_image_update = Member.query.get_or_404(id)
+#     if request.method == 'POST':
+#         file = request.files['file']
+#         ext = file.filename.split('.')[1]
+#         file_name = f"{member_image_update.first_name} {member_image_update.middle_name}
+#         {member_image_update.last_name}.{ext.lower()}"
+#         s3_resource = session.resource('s3')
+#         my_bucket = s3_resource.Bucket(os.environ["S3_BUCKET"])
+#         my_bucket.Object(file_name).put(Body=file)
+#         image_path = os.path.join(path, file_name)
+#         my_bucket.download_file(file_name, image_path)
+#         member_image_update.ext = ext.lower()
+#         db.session.commit()
+#         return render_template("uploaded.html", first_name=member_image_update.first_name)
+#     return render_template("upload.html", first_name=member_image_update.first_name)
 
 
-@app.route('/update/<int:id>', methods=['GET', 'POST'])
-def update(id):
+@app.route('/update', methods=['GET', 'POST'])
+def update():
     member_form = RegisterForm()
     member_to_update = Member.query.get_or_404(id)
     if request.method == "POST":
         if member_form.validate_on_submit():
+            organization_id = current_user.id
+            pic = request.files['pic']
+            encoded_pic = base64.b64encode(pic.read())
+            ext = secure_filename(pic.filename).split('.')[-1]
+            mimetype = pic.mimetype
+            file_name = f"{request.form['first_name']} {request.form['first_name']} {request.form['first_name']} " \
+                        f"{organization_id}.{ext.lower()}"
             member_to_update.title = request.form['title']
             member_to_update.first_name = request.form['first_name']
             member_to_update.middle_name = request.form['middle_name']
@@ -862,6 +905,9 @@ def update(id):
             member_to_update.birth_date = request.form['birth_date']
             member_to_update.phone = request.form['phone']
             member_to_update.country = request.form['country']
+            member_to_update.img_name = file_name
+            member_to_update.img = encoded_pic
+            member_to_update.mimetype = mimetype
             try:
                 db.session.commit()
                 return render_template("updated.html", first_name=member_to_update.first_name)

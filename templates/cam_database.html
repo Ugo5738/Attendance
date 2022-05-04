@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Camera Database</h1>
+    <table class="table table-hover table-bordered table-striped">
+        <tr>
+            <th>ID</th>
+            <th>Organization Name</th>
+            <th>Start Time</th>
+            <th>Stop Time</th>
+            <th>Date of Use</th>
+        </tr>
+        {% for cam in cam_data %}
+            <tr>
+                <td>{{ cam.id }}</td>
+                <td>{{ cam.org_name }}</td>
+                <td>{{ cam.start_time }}</td>
+                <td>{{ cam.stop_time }}</td>
+                <td>{{ cam.registration_date }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
